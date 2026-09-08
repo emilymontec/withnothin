@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+.pnpm-store/
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+
+# Env
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# Android
+apps/mobile/.gradle/
+apps/mobile/local.properties
+apps/mobile/**/build/
+apps/mobile/.idea/
+apps/mobile/*.iml
+apps/mobile/.cxx/
+
+# Prisma
+apps/api/prisma/*.db
+
+# Testing
+coverage/

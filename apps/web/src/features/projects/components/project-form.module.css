@@ -1,0 +1,60 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.textarea {
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  padding: 0.65rem;
+  border-radius: var(--radius-base);
+  border: var(--border-width) solid var(--color-ink);
+  background-color: var(--color-surface);
+  color: var(--color-ink);
+  resize: vertical;
+}
+
+.linkRow {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  align-items: center;
+}
+
+.linkInput {
+  flex: 1;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  padding: 0.5rem;
+  border-radius: var(--radius-base);
+  border: var(--border-width) solid var(--color-ink);
+  background-color: var(--color-surface);
+  color: var(--color-ink);
+}
+
+.removeLink {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+  color: var(--color-ink);
+}
+
+.addLink {
+  background: none;
+  border: none;
+  color: var(--color-ink);
+  text-decoration: underline;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  padding: 0;
+}
+
+.error {
+  color: var(--color-error);
+  font-size: 0.85rem;
+  margin: 0;
+}

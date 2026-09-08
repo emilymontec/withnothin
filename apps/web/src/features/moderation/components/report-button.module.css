@@ -1,0 +1,37 @@
+.trigger {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  color: var(--color-muted);
+  background: none;
+  border: none;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+}
+
+.form {
+  margin-top: 0.5rem;
+}
+
+.textarea {
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  padding: 0.5rem;
+  border-radius: var(--radius-base);
+  border: var(--border-width) solid var(--color-ink);
+  background-color: var(--color-surface);
+  color: var(--color-ink);
+  resize: vertical;
+  margin-bottom: 0.5rem;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.success {
+  color: var(--color-muted);
+  font-size: 0.85rem;
+}

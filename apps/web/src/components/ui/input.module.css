@@ -1,0 +1,24 @@
+.field {
+  margin-bottom: 1.25rem;
+}
+
+.input {
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: var(--radius-base);
+  border: var(--border-width) solid var(--color-ink);
+  background-color: var(--color-surface);
+  color: var(--color-ink);
+}
+
+.input::placeholder {
+  color: var(--color-muted);
+}
+
+.error {
+  color: var(--color-error);
+  font-size: 0.8rem;
+  margin: 0.35rem 0 0;
+}

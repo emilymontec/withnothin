@@ -1,0 +1,21 @@
+{
+  "name": "withnothin",
+  "private": true,
+  "version": "0.1.0",
+  "description": "WithNothin — Everyone starts with nothin.",
+  "scripts": {
+    "dev:api": "pnpm --filter @withnothin/api start:dev",
+    "dev:web": "pnpm --filter @withnothin/web dev",
+    "build:api": "pnpm --filter @withnothin/api build",
+    "build:web": "pnpm --filter @withnothin/web build",
+    "lint": "pnpm --filter @withnothin/api lint && pnpm --filter @withnothin/web lint",
+    "test:api": "pnpm --filter @withnothin/api test",
+    "docker:up": "docker compose -f infrastructure/docker/docker-compose.yml up --build",
+    "docker:down": "docker compose -f infrastructure/docker/docker-compose.yml down"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@9.7.0"
+}

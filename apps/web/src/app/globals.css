@@ -1,0 +1,98 @@
+/**
+ * Sistema de diseño de WithNothin.
+ * Fuente: brandboard del proyecto (mascota dibujada a mano, paleta
+ * estrictamente monocromática, tipografía manuscrita + sans limpia).
+ *
+ * Principio rector: trazos gruesos y planos, cero sombras/gradientes,
+ * la personalidad vive en los titulares (font-display) y en los
+ * acentos de garabatos — el resto de la interfaz se mantiene disciplinada.
+ */
+
+:root {
+  /* Paleta — deliberadamente monocromática, igual que el brandboard */
+  --color-ink: #000000; /* texto, bordes, iconos */
+  --color-paper: #e6e6e6; /* fondo por defecto */
+  --color-surface: #ffffff; /* tarjetas/inputs sobre el fondo paper */
+  --color-muted: #6b6b6b; /* texto secundario — tinte de ink, no un color nuevo */
+  --color-error: #b3261e; /* único color funcional fuera de la paleta de marca, uso mínimo */
+
+  /* Tipografía */
+  --font-display: var(--font-bristol), 'Segoe Print', cursive;
+  --font-body: var(--font-josefin-sans), system-ui, sans-serif;
+
+  /* Estructura */
+  --border-width: 2px;
+  --radius-base: 10px;
+  --radius-pill: 999px;
+  --content-max-width: 640px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+}
+
+body {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 400; /* Bristol es una fuente de un solo peso — no simular bold */
+  line-height: 1.15;
+  margin: 0 0 0.5em;
+}
+
+h1 {
+  font-size: 3rem;
+}
+
+h2 {
+  font-size: 2rem;
+}
+
+h3 {
+  font-size: 1.5rem;
+}
+
+p {
+  margin: 0 0 1em;
+  max-width: 65ch; /* líneas cortas, legibles */
+}
+
+a {
+  color: var(--color-ink);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+/* Foco de teclado siempre visible — nunca se remueve el outline */
+:focus-visible {
+  outline: 3px solid var(--color-ink);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

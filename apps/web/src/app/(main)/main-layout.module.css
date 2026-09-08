@@ -1,0 +1,47 @@
+.layout {
+  min-height: 100vh;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: var(--border-width) solid var(--color-ink);
+  padding: 1rem 1.5rem;
+}
+
+.logoLink {
+  text-decoration: none;
+  display: inline-block;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.navLink {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.badge {
+  display: inline-block;
+  min-width: 1.25rem;
+  padding: 0.05rem 0.35rem;
+  margin-left: 0.35rem;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+  font-size: 0.7rem;
+  text-align: center;
+}
+
+.content {
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}

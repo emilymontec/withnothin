@@ -1,0 +1,38 @@
+.card {
+  border: var(--border-width) solid var(--color-ink);
+  border-radius: var(--radius-base);
+  background-color: var(--color-surface);
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.title {
+  text-decoration: none;
+  color: var(--color-ink);
+}
+
+.title h3 {
+  margin: 0 0 0.25rem;
+}
+
+.owner {
+  color: var(--color-muted);
+  font-size: 0.85rem;
+}
+
+.techList {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0;
+  margin: 0.75rem 0 0;
+}
+
+.techChip {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-muted);
+  color: var(--color-muted);
+}

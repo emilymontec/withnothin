@@ -1,0 +1,22 @@
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.username {
+  color: var(--color-muted);
+  margin: 0 0 0.5rem;
+}
+
+.stats {
+  font-size: 0.85rem;
+  color: var(--color-muted);
+}
+
+.divider {
+  border: none;
+  border-top: var(--border-width) solid var(--color-ink);
+  margin: 1.5rem 0;
+}

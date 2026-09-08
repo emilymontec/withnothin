@@ -1,0 +1,48 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: withnothin-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: withnothin
+      POSTGRES_PASSWORD: withnothin
+      POSTGRES_DB: withnothin
+    ports:
+      - "5432:5432"
+    volumes:
+      - withnothin_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U withnothin"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ../../
+      dockerfile: apps/api/Dockerfile
+    container_name: withnothin-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - ../../apps/api/.env
+    ports:
+      - "4000:4000"
+
+  web:
+    build:
+      context: ../../
+      dockerfile: apps/web/Dockerfile
+    container_name: withnothin-web
+    restart: unless-stopped
+    depends_on:
+      - api
+    env_file:
+      - ../../apps/web/.env
+    ports:
+      - "3000:3000"
+
+volumes:
+  withnothin_pgdata:

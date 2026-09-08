@@ -1,0 +1,405 @@
+// Schema inicial — se amplía módulo a módulo, no de una sola vez.
+// Cada fase del roadmap agrega SOLO las tablas que le corresponden.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Identidad. El id coincide con el `sub` del JWT emitido por Supabase Auth,
+/// para no acoplar el resto del dominio a un ID interno de Supabase.
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  profile Profile?
+  userTechnologies UserTechnology[]
+  mediaAssets      MediaAsset[]
+  posts            Post[]
+  comments         Comment[]
+  likes            Like[]
+  saves            Save[]
+  notifications    Notification[]
+  following        Follow[] @relation("Following") // a quién sigo
+  followers        Follow[] @relation("Followers")  // quién me sigue
+  reports          Report[]
+  blocking         Block[]  @relation("Blocking")   // a quién bloqueé
+  blockedBy        Block[]  @relation("BlockedBy")  // quién me bloqueó
+  muting           Mute[]   @relation("Muting")     // a quién silencié
+  mutedBy          Mute[]   @relation("MutedBy")    // quién me silenció
+  projects         Project[]
+  projectMemberships ProjectMember[]
+
+  @@map("users")
+}
+
+model Profile {
+  id          String   @id @default(uuid())
+  userId      String   @unique @map("user_id")
+  displayName String   @map("display_name")
+  username    String   @unique
+  bio         String?
+  avatarUrl   String?  @map("avatar_url")
+  headline    String?
+  location    String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([username])
+  @@map("profiles")
+}
+
+/// Catálogo de tecnologías. Se crea por seed (las más comunes) y también
+/// dinámicamente vía find-or-create (ej. al etiquetar un post con una
+/// tecnología que aún no existe) — nunca requiere aprobación manual en v1.
+model Technology {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  category  String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  userTechnologies UserTechnology[]
+  postTechnologies PostTechnology[]
+  projectTechnologies ProjectTechnology[]
+
+  @@index([slug])
+  @@map("technologies")
+}
+
+/// Tags libres (no necesariamente tecnologías: "beginner-friendly",
+/// "career", "open-source"...). Mismo patrón find-or-create que Technology.
+model Tag {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+
+  postTags PostTag[]
+
+  @@index([slug])
+  @@map("tags")
+}
+
+/// Stack tecnológico declarado por el usuario en su perfil. N:M con nivel.
+model UserTechnology {
+  userId       String  @map("user_id")
+  technologyId String  @map("technology_id")
+  level        String? // "beginner" | "intermediate" | "advanced" — sin enum propio aún, ver decisiones pendientes
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user       User       @relation(fields: [userId], references: [id])
+  technology Technology @relation(fields: [technologyId], references: [id])
+
+  @@id([userId, technologyId])
+  @@map("user_technologies")
+}
+
+/// Registro de un archivo subido a Supabase Storage. Se crea en estado
+/// PENDING al emitir el signed URL, y pasa a CONFIRMED cuando el cliente
+/// avisa que la subida terminó. Se vincula a un post vía `PostMedia`.
+model MediaAsset {
+  id          String    @id @default(uuid())
+  ownerId     String    @map("owner_id")
+  bucketPath  String    @map("bucket_path")
+  mimeType    String    @map("mime_type")
+  sizeBytes   Int       @map("size_bytes")
+  status      String    @default("PENDING") // "PENDING" | "CONFIRMED"
+  createdAt   DateTime  @default(now()) @map("created_at")
+  confirmedAt DateTime? @map("confirmed_at")
+
+  owner User @relation(fields: [ownerId], references: [id])
+  postMedia PostMedia[]
+
+  @@index([ownerId])
+  @@map("media_assets")
+}
+
+/// Un post representa CUALQUIER tipo de publicación (BUILD, LEARN, STUCK,
+/// QUESTION, IDEA, SHOWCASE, DISCOVER...). No hay una tabla por tipo:
+/// el campo `type` es un enum de aplicación (ver @withnothin/shared-types)
+/// y `metadata` (JSONB) guarda los campos específicos de cada tipo sin
+/// requerir una migración estructural cuando se agregue un tipo nuevo.
+model Post {
+  id         String    @id @default(uuid())
+  authorId   String    @map("author_id")
+  type       String
+  content    String
+  status     String    @default("PUBLISHED") // "PUBLISHED" | "DRAFT" | "ARCHIVED"
+  visibility String    @default("PUBLIC") // "PUBLIC" | "FOLLOWERS" | "PRIVATE"
+  metadata   Json?
+  // Decisión de arquitectura (Fase 9): en vez de una tabla de unión
+  // `project_posts`, un post referencia opcionalmente al proyecto del
+  // que habla. Más simple que N:M porque en la práctica un post habla
+  // de UN proyecto (típicamente BUILD/SHOWCASE, pero no se restringe
+  // por tipo — un STUCK también puede ser sobre un proyecto).
+  projectId  String?   @map("project_id")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+  deletedAt  DateTime? @map("deleted_at")
+
+  author       User             @relation(fields: [authorId], references: [id])
+  project      Project?         @relation(fields: [projectId], references: [id])
+  media        PostMedia[]
+  technologies PostTechnology[]
+  tags         PostTag[]
+  comments     Comment[]
+  likes        Like[]
+  saves        Save[]
+
+  @@index([authorId])
+  @@index([type])
+  @@index([createdAt])
+  @@index([visibility])
+  @@index([projectId])
+  @@map("posts")
+}
+
+model PostMedia {
+  id           String @id @default(uuid())
+  postId       String @map("post_id")
+  mediaAssetId String @map("media_asset_id")
+  order        Int    @default(0)
+
+  post       Post       @relation(fields: [postId], references: [id])
+  mediaAsset MediaAsset @relation(fields: [mediaAssetId], references: [id])
+
+  @@index([postId])
+  @@map("post_media")
+}
+
+model PostTechnology {
+  postId       String @map("post_id")
+  technologyId String @map("technology_id")
+
+  post       Post       @relation(fields: [postId], references: [id])
+  technology Technology @relation(fields: [technologyId], references: [id])
+
+  @@id([postId, technologyId])
+  @@map("post_technologies")
+}
+
+model PostTag {
+  postId String @map("post_id")
+  tagId  String @map("tag_id")
+
+  post Post @relation(fields: [postId], references: [id])
+  tag  Tag  @relation(fields: [tagId], references: [id])
+
+  @@id([postId, tagId])
+  @@map("post_tags")
+}
+
+/// Comentarios con soporte de respuestas anidadas (parentCommentId).
+/// Soft delete: un comentario borrado conserva el hilo (se muestra
+/// como "[eliminado]" en el cliente) en vez de romper las respuestas hijas.
+model Comment {
+  id              String    @id @default(uuid())
+  postId          String    @map("post_id")
+  authorId        String    @map("author_id")
+  content         String
+  parentCommentId String?   @map("parent_comment_id")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  deletedAt       DateTime? @map("deleted_at")
+
+  post    Post      @relation(fields: [postId], references: [id])
+  author  User      @relation(fields: [authorId], references: [id])
+  parent  Comment?  @relation("CommentReplies", fields: [parentCommentId], references: [id])
+  replies Comment[] @relation("CommentReplies")
+
+  @@index([postId])
+  @@index([parentCommentId])
+  @@map("comments")
+}
+
+/// Sin borrado lógico: un like o existe o no existe.
+model Like {
+  userId    String   @map("user_id")
+  postId    String   @map("post_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+  post Post @relation(fields: [postId], references: [id])
+
+  @@id([userId, postId])
+  @@index([postId])
+  @@map("likes")
+}
+
+/// Grafo social. La restricción "no puedo seguirme a mí mismo" se valida
+/// en la capa de aplicación (FollowsService), no como CHECK de base de
+/// datos — Prisma no expresa CHECK constraints en el schema; si se
+/// quiere reforzar a nivel DB, se agrega vía una migración SQL manual.
+model Follow {
+  followerId String   @map("follower_id")
+  followeeId String   @map("followee_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  follower User @relation("Following", fields: [followerId], references: [id])
+  followee User @relation("Followers", fields: [followeeId], references: [id])
+
+  @@id([followerId, followeeId])
+  @@index([followeeId])
+  @@map("follows")
+}
+
+/// Sin borrado lógico, igual que Like — un post guardado o existe o no existe.
+model Save {
+  userId    String   @map("user_id")
+  postId    String   @map("post_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+  post Post @relation(fields: [postId], references: [id])
+
+  @@id([userId, postId])
+  @@index([postId])
+  @@map("saves")
+}
+
+/// Notificaciones básicas (v1): solo persistidas, sin push todavía
+/// (ver arquitectura, Fase 6 = "persistidas, sin push"). `type` es un
+/// enum de aplicación (LIKE | COMMENT | FOLLOW, ver shared-types) y
+/// `payload` guarda el contexto mínimo para renderizar el mensaje
+/// (quién hizo la acción, sobre qué post) sin tener que hacer joins
+/// adicionales al listar notificaciones.
+model Notification {
+  id        String    @id @default(uuid())
+  userId    String    @map("user_id") // destinatario
+  type      String
+  payload   Json?
+  readAt    DateTime? @map("read_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([userId, readAt])
+  @@map("notifications")
+}
+
+/// Moderación mínima (v1): reportes quedan PENDING sin flujo de
+/// revisión todavía — no hay roles de moderador/admin definidos aún
+/// (ver decisiones pendientes de la arquitectura). El panel para
+/// revisarlos llega recién en la Fase 12 (Admin Dashboard). No se
+/// valida existencia del `targetId` por simplicidad: un reporte sobre
+/// un id inexistente es inofensivo y se descarta al revisar.
+model Report {
+  id         String   @id @default(uuid())
+  reporterId String   @map("reporter_id")
+  targetType String   @map("target_type") // "POST" | "COMMENT" | "USER"
+  targetId   String   @map("target_id")
+  reason     String
+  status     String   @default("PENDING") // "PENDING" | "REVIEWED" | "DISMISSED"
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  reporter User @relation(fields: [reporterId], references: [id])
+
+  @@index([targetType, targetId])
+  @@index([status])
+  @@map("reports")
+}
+
+/// Bloquear es la acción "dura": impide crear nuevos follows entre
+/// ambos usuarios (ver FollowsService) y oculta el contenido del
+/// bloqueado en el feed del bloqueador, en ambas direcciones (ver
+/// FeedService). NO borra follows existentes automáticamente — ver
+/// nota de alcance en BlocksService.
+model Block {
+  blockerId String   @map("blocker_id")
+  blockedId String   @map("blocked_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  blocker User @relation("Blocking", fields: [blockerId], references: [id])
+  blocked User @relation("BlockedBy", fields: [blockedId], references: [id])
+
+  @@id([blockerId, blockedId])
+  @@index([blockedId])
+  @@map("blocks")
+}
+
+/// Silenciar es la acción "suave": solo oculta los posts del
+/// silenciado en el feed de quien silencia. No afecta follows,
+/// comentarios ni likes, y no es recíproco.
+model Mute {
+  muterId   String   @map("muter_id")
+  mutedId   String   @map("muted_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  muter User @relation("Muting", fields: [muterId], references: [id])
+  muted User @relation("MutedBy", fields: [mutedId], references: [id])
+
+  @@id([muterId, mutedId])
+  @@map("mutes")
+}
+
+/// Proyectos: el diferenciador "muestra lo que construiste con contexto"
+/// frente a un post suelto. `ownerId` es la fuente de verdad para
+/// permisos (ver ProjectsPolicy); el owner también aparece como fila
+/// en ProjectMember (role OWNER) para que listar "miembros" sea una
+/// sola consulta sin tener que unir owner + colaboradores por separado.
+model Project {
+  id          String    @id @default(uuid())
+  ownerId     String    @map("owner_id")
+  name        String
+  description String?
+  status      String    @default("ACTIVE") // "ACTIVE" | "ARCHIVED"
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  owner        User                @relation(fields: [ownerId], references: [id])
+  members      ProjectMember[]
+  technologies ProjectTechnology[]
+  links        ProjectLink[]
+  posts        Post[]
+
+  @@index([ownerId])
+  @@map("projects")
+}
+
+model ProjectMember {
+  projectId String   @map("project_id")
+  userId    String   @map("user_id")
+  role      String   @default("MEMBER") // "OWNER" | "MEMBER"
+  createdAt DateTime @default(now()) @map("created_at")
+
+  project Project @relation(fields: [projectId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+
+  @@id([projectId, userId])
+  @@map("project_members")
+}
+
+model ProjectTechnology {
+  projectId    String @map("project_id")
+  technologyId String @map("technology_id")
+
+  project    Project    @relation(fields: [projectId], references: [id])
+  technology Technology @relation(fields: [technologyId], references: [id])
+
+  @@id([projectId, technologyId])
+  @@map("project_technologies")
+}
+
+model ProjectLink {
+  id        String @id @default(uuid())
+  projectId String @map("project_id")
+  label     String
+  url       String
+
+  project Project @relation(fields: [projectId], references: [id])
+
+  @@index([projectId])
+  @@map("project_links")
+}

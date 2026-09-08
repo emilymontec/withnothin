@@ -1,0 +1,19 @@
+.link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.item {
+  padding: 0.85rem 0;
+  border-top: 1px solid var(--color-muted);
+  cursor: pointer;
+}
+
+.item p {
+  margin: 0;
+}
+
+.unread {
+  font-weight: 600;
+}

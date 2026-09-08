@@ -1,0 +1,32 @@
+.button {
+  display: inline-block;
+  text-decoration: none;
+  text-align: center;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-base);
+  border: var(--border-width) solid var(--color-ink);
+  cursor: pointer;
+  transition: transform 80ms ease;
+}
+
+.button:active {
+  transform: translateY(1px);
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.primary {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+}
+
+.secondary {
+  background-color: transparent;
+  color: var(--color-ink);
+}
