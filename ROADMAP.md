@@ -5,7 +5,7 @@
 
 Leyenda: `[x]` completado · `[~]` en progreso · `[ ]` no iniciado
 
-**Última actualización:** Fase 9 completa a nivel de código en backend, web y Android: proyectos con miembros, tecnologías y links, resolviendo la decisión pendiente de cómo vincular posts a proyectos (FK opcional `posts.projectId` en vez de tabla de unión). Con esto, todas las fases SECONDARY del roadmap original (6, 7, 8, 9) están cerradas — quedan Fase 10 (Q&A) en adelante, todas marcadas como SECONDARY o FUTURE.
+**Última actualización:** Fase 10 completa a nivel de código en backend, web y Android: Q&A con votos con signo y respuesta aceptada, resolviendo la decisión de arquitectura pendiente (`Question` = `Post` con `type=QUESTION`, solo `Answer` necesitaba tabla propia). Con esto, WithNothin tiene implementadas todas las fases del roadmap original salvo Fase 11 (Communities) y Fase 12 (Recommendations + Admin Dashboard completo), ambas marcadas como FUTURE desde el diseño inicial — es decir, se completó todo lo que el roadmap consideraba necesario para un producto funcional.
 
 ---
 
@@ -232,14 +232,19 @@ Leyenda: `[x]` completado · `[~]` en progreso · `[ ]` no iniciado
 
 ---
 
-## Fase 10 — Q&A: Questions, Answers, Votes [ ]
+## Fase 10 — Q&A: Questions, Answers, Votes [x] COMPLETADA (código, incluida UI de Android)
 *SECONDARY*
 
-- [ ] **Decisión previa:** `questions` como entidad propia vs especialización de `posts`
-- [ ] **Backend:** módulo `questions`/`answers`/`votes`
-- [ ] **Base de datos:** tablas correspondientes según la decisión tomada
-- [ ] **Web:** flujo de pregunta → respuestas → aceptar respuesta
-- [ ] **Android:** mismo flujo
+- [x] **Decisión tomada:** `Question` NO es una entidad propia — es un `Post` con `type = "QUESTION"` (ya tiene contenido, tecnologías, tags y comentarios; duplicar esa estructura habría sido redundante). Solo `Answer` necesitaba tabla propia, porque tiene comportamiento que `Comment` no tiene: puede aceptarse y acumula votos con signo.
+- [x] **Backend:** módulo `answers` (crear — valida que el post sea tipo QUESTION —, listar con la aceptada primero, aceptar solo por el autor de la pregunta vía `AnswersPolicy`, desmarca cualquier otra aceptada antes de marcar una nueva)
+- [x] **Backend:** módulo `votes` (voto con signo +1/-1 sobre una respuesta, no un simple like — permite puntaje negativo)
+- [x] **Base de datos:** tablas `answers`, `votes`
+- [x] **Backend:** test unitario de `AnswersPolicy`
+- [x] **`shared-types`:** interfaces de `Answer` compartidas con la web
+- [x] **Web:** `VoteButtons` (toggle real con signo), `AnswerForm`/`AnswerList`/`AnswerItem`, botón "Marcar como aceptada" visible solo para el autor de la pregunta. El detalle de post bifurca: `type === 'QUESTION'` muestra respuestas, cualquier otro tipo muestra comentarios normales
+- [x] **Android:** `AnswersApi`/`VotesApi` (Retrofit) + misma bifurcación QUESTION/comentarios en `PostDetailScreen`
+- [ ] **Diferencia menor documentada:** el voto en Android no hace toggle a 0 como en la web (cada tap reenvía el mismo valor) — se resuelve fácilmente si en la práctica genera confusión
+- [ ] **Pendiente (requiere tu entorno):** ejecutar `prisma migrate dev` y probar el flujo real pregunta → respuestas → votos → aceptar
 
 ---
 
@@ -282,7 +287,7 @@ Leyenda: `[x]` completado · `[~]` en progreso · `[ ]` no iniciado
 - [ ] Modelado de `questions`: entidad propia vs especialización de posts → **bloquea Fase 10**
 - [ ] Alcance del campo `metadata` (JSONB) por tipo de post → **bloquea Fase 4**
 - [ ] Política de visibilidad de posts (público/seguidores/privado) → **bloquea Fase 4 y 5**
-- [ ] Roles iniciales: ¿solo `user`/`admin` o también `moderator` desde el día uno? → bloquea el panel de revisión de reportes (Fase 12), NO bloqueó la Fase 8 — reportar/bloquear/silenciar no requieren roles, solo la *revisión* de reportes los necesita
+- [ ] Roles iniciales: ¿solo `user`/`admin` o también `moderator` desde el día uno? → bloquea el panel de revisión de reportes (Fase 12). Todo lo anterior (Fases 1-10) se implementó sin necesitar roles — cada permiso se resolvió con ownership simple (`authorId === userId`, `ownerId === userId`), que es todo lo que hacía falta hasta ahora
 
 ---
 

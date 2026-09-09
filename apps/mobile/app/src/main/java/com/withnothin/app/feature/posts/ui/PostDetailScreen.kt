@@ -20,6 +20,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.withnothin.app.data.remote.dto.AnswerDto
 import com.withnothin.app.data.remote.dto.CommentDto
 import com.withnothin.app.feature.posts.PostDetailViewModel
 
@@ -69,25 +70,55 @@ fun PostDetailScreen(
         )
 
         Divider(modifier = Modifier.padding(vertical = 12.dp))
-        Text("Comentarios")
 
-        OutlinedTextField(
-            value = state.newCommentText,
-            onValueChange = viewModel::onNewCommentChange,
-            label = { Text("Escribe un comentario...") },
-            modifier = Modifier.fillMaxWidth(),
-        )
-        Button(
-            onClick = viewModel::submitComment,
-            enabled = !state.isSubmittingComment,
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text(if (state.isSubmittingComment) "Enviando..." else "Comentar")
-        }
+        if (post.type == "QUESTION") {
+            Text("Respuestas")
 
-        LazyColumn {
-            items(state.comments, key = { it.id }) { comment ->
-                CommentRow(comment)
+            OutlinedTextField(
+                value = state.newAnswerText,
+                onValueChange = viewModel::onNewAnswerChange,
+                label = { Text("Escribe tu respuesta...") },
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Button(
+                onClick = viewModel::submitAnswer,
+                enabled = !state.isSubmittingAnswer,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(if (state.isSubmittingAnswer) "Enviando..." else "Responder")
+            }
+
+            LazyColumn {
+                items(state.answers, key = { it.id }) { answer ->
+                    AnswerRow(
+                        answer = answer,
+                        canAccept = state.isCurrentUserAuthor,
+                        onAccept = { viewModel.acceptAnswer(answer.id) },
+                        onVote = { value -> viewModel.voteAnswer(answer.id, value) },
+                    )
+                }
+            }
+        } else {
+            Text("Comentarios")
+
+            OutlinedTextField(
+                value = state.newCommentText,
+                onValueChange = viewModel::onNewCommentChange,
+                label = { Text("Escribe un comentario...") },
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Button(
+                onClick = viewModel::submitComment,
+                enabled = !state.isSubmittingComment,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(if (state.isSubmittingComment) "Enviando..." else "Comentar")
+            }
+
+            LazyColumn {
+                items(state.comments, key = { it.id }) { comment ->
+                    CommentRow(comment)
+                }
             }
         }
     }
@@ -101,6 +132,31 @@ private fun CommentRow(comment: CommentDto) {
         } else {
             Text("@${comment.author?.username ?: ""}")
             Text(comment.content)
+        }
+    }
+    Divider()
+}
+
+@Composable
+private fun AnswerRow(
+    answer: AnswerDto,
+    canAccept: Boolean,
+    onAccept: () -> Unit,
+    onVote: (Int) -> Unit,
+) {
+    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+        if (answer.isAccepted) {
+            Text("✓ Respuesta aceptada")
+        }
+        Text(answer.content)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 4.dp)) {
+            TextButton(onClick = { onVote(1) }) { Text("▲") }
+            Text("${answer.votesScore}")
+            TextButton(onClick = { onVote(-1) }) { Text("▼") }
+            Text("@${answer.author.username}")
+            if (canAccept && !answer.isAccepted) {
+                TextButton(onClick = onAccept) { Text("Aceptar") }
+            }
         }
     }
     Divider()

@@ -92,3 +92,19 @@ export interface Project {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface AnswerAuthor {
+  id: string;
+  username: string;
+  displayName: string;
+  avatarUrl: string | null;
+}
+
+export interface Answer {
+  id: string;
+  content: string;
+  isAccepted: boolean;
+  votesScore: number;
+  author: AnswerAuthor;
+  createdAt: string;
+}

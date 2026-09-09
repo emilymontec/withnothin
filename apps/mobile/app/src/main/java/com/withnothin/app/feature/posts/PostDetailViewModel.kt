@@ -3,13 +3,18 @@ package com.withnothin.app.feature.posts
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.withnothin.app.data.remote.dto.CreateAnswerBody
 import com.withnothin.app.data.remote.dto.CreateCommentBody
 import com.withnothin.app.data.remote.dto.CreateReportBody
+import com.withnothin.app.data.remote.dto.CreateVoteBody
+import com.withnothin.app.data.remote.service.AnswersApi
 import com.withnothin.app.data.remote.service.CommentsApi
 import com.withnothin.app.data.remote.service.LikesApi
 import com.withnothin.app.data.remote.service.ModerationApi
 import com.withnothin.app.data.remote.service.PostsApi
 import com.withnothin.app.data.remote.service.SavesApi
+import com.withnothin.app.data.remote.service.UsersApi
+import com.withnothin.app.data.remote.service.VotesApi
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,6 +30,9 @@ class PostDetailViewModel @Inject constructor(
     private val likesApi: LikesApi,
     private val savesApi: SavesApi,
     private val moderationApi: ModerationApi,
+    private val answersApi: AnswersApi,
+    private val votesApi: VotesApi,
+    private val usersApi: UsersApi,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -43,7 +51,17 @@ class PostDetailViewModel @Inject constructor(
             try {
                 val post = postsApi.findById(postId)
                 val comments = commentsApi.findByPost(postId)
-                _uiState.update { it.copy(post = post, comments = comments, isLoading = false) }
+                val answers = if (post.type == "QUESTION") answersApi.findByPost(postId) else emptyList()
+                val currentUser = runCatching { usersApi.getMe() }.getOrNull()
+                _uiState.update {
+                    it.copy(
+                        post = post,
+                        comments = comments,
+                        answers = answers,
+                        isCurrentUserAuthor = currentUser?.id == post.author.id,
+                        isLoading = false,
+                    )
+                }
             } catch (e: Exception) {
                 _uiState.update { it.copy(isLoading = false, errorMessage = e.message ?: "No pudimos cargar el post") }
             }
@@ -97,6 +115,50 @@ class PostDetailViewModel @Inject constructor(
     fun toggleReportForm() = _uiState.update { it.copy(isReportFormOpen = !it.isReportFormOpen, reportSubmitted = false) }
 
     fun onReportReasonChange(value: String) = _uiState.update { it.copy(reportReason = value) }
+
+    fun onNewAnswerChange(value: String) = _uiState.update { it.copy(newAnswerText = value) }
+
+    fun submitAnswer() {
+        val content = _uiState.value.newAnswerText
+        if (content.isBlank()) return
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isSubmittingAnswer = true) }
+            try {
+                answersApi.create(postId, CreateAnswerBody(content = content))
+                val answers = answersApi.findByPost(postId)
+                _uiState.update { it.copy(answers = answers, newAnswerText = "", isSubmittingAnswer = false) }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(isSubmittingAnswer = false, errorMessage = e.message ?: "No pudimos enviar tu respuesta")
+                }
+            }
+        }
+    }
+
+    fun acceptAnswer(answerId: String) {
+        viewModelScope.launch {
+            try {
+                answersApi.accept(postId, answerId)
+                val answers = answersApi.findByPost(postId)
+                _uiState.update { it.copy(answers = answers) }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(errorMessage = e.message ?: "No pudimos aceptar la respuesta") }
+            }
+        }
+    }
+
+    fun voteAnswer(answerId: String, value: Int) {
+        viewModelScope.launch {
+            try {
+                if (value == 0) votesApi.unvote(answerId) else votesApi.vote(answerId, CreateVoteBody(value))
+                val answers = answersApi.findByPost(postId)
+                _uiState.update { it.copy(answers = answers) }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(errorMessage = e.message ?: "No pudimos registrar tu voto") }
+            }
+        }
+    }
 
     fun submitReport() {
         val reason = _uiState.value.reportReason

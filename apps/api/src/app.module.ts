@@ -26,6 +26,8 @@ import { BlocksModule } from './modules/blocks/blocks.module';
 import { MutesModule } from './modules/mutes/mutes.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { ProjectsModule } from './modules/projects/projects.module';
+import { AnswersModule } from './modules/answers/answers.module';
+import { VotesModule } from './modules/votes/votes.module';
 import { StorageModule } from './shared/storage/storage.module';
 
 @Module({
@@ -61,7 +63,9 @@ import { StorageModule } from './shared/storage/storage.module';
     MutesModule,
     ReportsModule,
     ProjectsModule,
-    // Próximo módulo de dominio (Fase 10): QuestionsModule, AnswersModule, VotesModule...
+    AnswersModule,
+    VotesModule,
+    // Próximo módulo de dominio (Fase 11): CommunitiesModule...
   ],
   providers: [
     { provide: APP_FILTER, useClass: HttpExceptionFilter },

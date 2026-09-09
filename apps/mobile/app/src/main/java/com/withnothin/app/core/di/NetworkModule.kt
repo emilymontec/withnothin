@@ -5,6 +5,7 @@ import com.withnothin.app.core.network.ApiClient
 import com.withnothin.app.core.network.AuthInterceptor
 import com.withnothin.app.core.network.TokenProvider
 import com.withnothin.app.core.session.SessionManager
+import com.withnothin.app.data.remote.service.AnswersApi
 import com.withnothin.app.data.remote.service.CommentsApi
 import com.withnothin.app.data.remote.service.FollowsApi
 import com.withnothin.app.data.remote.service.LikesApi
@@ -18,6 +19,7 @@ import com.withnothin.app.data.remote.service.SavesApi
 import com.withnothin.app.data.remote.service.SearchApi
 import com.withnothin.app.data.remote.service.TechnologiesApi
 import com.withnothin.app.data.remote.service.UsersApi
+import com.withnothin.app.data.remote.service.VotesApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -113,4 +115,14 @@ object NetworkModule {
     @Singleton
     fun provideProjectsApi(retrofit: Retrofit): ProjectsApi =
         retrofit.create(ProjectsApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideAnswersApi(retrofit: Retrofit): AnswersApi =
+        retrofit.create(AnswersApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideVotesApi(retrofit: Retrofit): VotesApi =
+        retrofit.create(VotesApi::class.java)
 }

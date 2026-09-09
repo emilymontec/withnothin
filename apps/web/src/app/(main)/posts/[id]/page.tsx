@@ -8,11 +8,15 @@ import { LikeButton } from '@/features/posts/components/like-button';
 import { SaveButton } from '@/features/saves/components/save-button';
 import { CommentList } from '@/features/comments/components/comment-list';
 import { CommentForm } from '@/features/comments/components/comment-form';
+import { AnswerForm } from '@/features/answers/components/answer-form';
+import { AnswerList } from '@/features/answers/components/answer-list';
+import { useCurrentUser } from '@/features/users/hooks/use-current-user';
 import styles from './post-detail.module.css';
 
 export default function PostDetailPage() {
   const params = useParams<{ id: string }>();
   const { data: post, isLoading, isError } = usePost(params.id);
+  const { data: currentUser } = useCurrentUser();
 
   if (isLoading) {
     return <p>Cargando post...</p>;
@@ -21,6 +25,9 @@ export default function PostDetailPage() {
   if (isError || !post) {
     return <p>No pudimos encontrar este post.</p>;
   }
+
+  const isQuestion = post.type === 'QUESTION';
+  const isAuthor = currentUser?.id === post.author.id;
 
   return (
     <article>
@@ -50,9 +57,19 @@ export default function PostDetailPage() {
 
       <hr className={styles.divider} />
 
-      <h3>Comentarios</h3>
-      <CommentForm postId={post.id} />
-      <CommentList postId={post.id} />
+      {isQuestion ? (
+        <>
+          <h3>Respuestas</h3>
+          <AnswerForm postId={post.id} />
+          <AnswerList postId={post.id} canAccept={isAuthor} />
+        </>
+      ) : (
+        <>
+          <h3>Comentarios</h3>
+          <CommentForm postId={post.id} />
+          <CommentList postId={post.id} />
+        </>
+      )}
     </article>
   );
 }

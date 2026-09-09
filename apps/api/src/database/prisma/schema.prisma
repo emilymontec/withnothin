@@ -36,6 +36,8 @@ model User {
   mutedBy          Mute[]   @relation("MutedBy")    // quién me silenció
   projects         Project[]
   projectMemberships ProjectMember[]
+  answers          Answer[]
+  votes            Vote[]
 
   @@map("users")
 }
@@ -156,6 +158,7 @@ model Post {
   comments     Comment[]
   likes        Like[]
   saves        Save[]
+  answers      Answer[] // solo relevante si type = "QUESTION" — ver decisión en módulo answers
 
   @@index([authorId])
   @@index([type])
@@ -402,4 +405,44 @@ model ProjectLink {
 
   @@index([projectId])
   @@map("project_links")
+}
+
+/// Decisión de arquitectura (Fase 10): `Question` NO es una entidad
+/// propia — es un `Post` con `type = "QUESTION"` (ya tiene contenido,
+/// tecnologías, tags y comentarios; duplicar esa estructura habría
+/// sido redundante). Lo que SÍ necesita su propia tabla es `Answer`,
+/// porque tiene comportamiento que `Comment` no tiene: puede marcarse
+/// como aceptada y acumula votos.
+model Answer {
+  id         String    @id @default(uuid())
+  postId     String    @map("post_id") // el Post de tipo QUESTION
+  authorId   String    @map("author_id")
+  content    String
+  isAccepted Boolean   @default(false) @map("is_accepted")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+  deletedAt  DateTime? @map("deleted_at")
+
+  post   Post   @relation(fields: [postId], references: [id])
+  author User   @relation(fields: [authorId], references: [id])
+  votes  Vote[]
+
+  @@index([postId])
+  @@map("answers")
+}
+
+/// Voto con signo (+1 / -1), no un simple like — así una respuesta
+/// puede tener puntaje negativo, como en Stack Overflow.
+model Vote {
+  userId    String   @map("user_id")
+  answerId  String   @map("answer_id")
+  value     Int // 1 | -1
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user   User   @relation(fields: [userId], references: [id])
+  answer Answer @relation(fields: [answerId], references: [id])
+
+  @@id([userId, answerId])
+  @@index([answerId])
+  @@map("votes")
 }
