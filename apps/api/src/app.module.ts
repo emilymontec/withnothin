@@ -6,6 +6,7 @@ import { validateEnv } from './config/env.validation';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { AuthGuard } from './common/guards/auth.guard';
+import { RolesGuard } from './common/guards/roles.guard';
 import { HealthModule } from './modules/health/health.module';
 import { PrismaModule } from './database/prisma/prisma.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -28,6 +29,9 @@ import { ReportsModule } from './modules/reports/reports.module';
 import { ProjectsModule } from './modules/projects/projects.module';
 import { AnswersModule } from './modules/answers/answers.module';
 import { VotesModule } from './modules/votes/votes.module';
+import { CommunitiesModule } from './modules/communities/communities.module';
+import { AdminModule } from './modules/admin/admin.module';
+import { RecommendationsModule } from './modules/recommendations/recommendations.module';
 import { StorageModule } from './shared/storage/storage.module';
 
 @Module({
@@ -65,13 +69,17 @@ import { StorageModule } from './shared/storage/storage.module';
     ProjectsModule,
     AnswersModule,
     VotesModule,
-    // Próximo módulo de dominio (Fase 11): CommunitiesModule...
+    CommunitiesModule,
+    AdminModule,
+    RecommendationsModule,
+    // Roadmap original completo — ver ROADMAP.md para extensiones futuras.
   ],
   providers: [
     { provide: APP_FILTER, useClass: HttpExceptionFilter },
     { provide: APP_INTERCEPTOR, useClass: LoggingInterceptor },
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_GUARD, useClass: AuthGuard },
+    { provide: APP_GUARD, useClass: RolesGuard },
   ],
 })
 export class AppModule {}

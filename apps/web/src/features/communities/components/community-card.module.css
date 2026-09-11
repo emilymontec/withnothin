@@ -1,0 +1,19 @@
+.card {
+  display: block;
+  border: var(--border-width) solid var(--color-ink);
+  border-radius: var(--radius-base);
+  background-color: var(--color-surface);
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  text-decoration: none;
+  color: var(--color-ink);
+}
+
+.card h3 {
+  margin: 0 0 0.35rem;
+}
+
+.meta {
+  color: var(--color-muted);
+  font-size: 0.8rem;
+}

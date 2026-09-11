@@ -6,7 +6,9 @@ import com.withnothin.app.core.network.AuthInterceptor
 import com.withnothin.app.core.network.TokenProvider
 import com.withnothin.app.core.session.SessionManager
 import com.withnothin.app.data.remote.service.AnswersApi
+import com.withnothin.app.data.remote.service.AdminApi
 import com.withnothin.app.data.remote.service.CommentsApi
+import com.withnothin.app.data.remote.service.CommunitiesApi
 import com.withnothin.app.data.remote.service.FollowsApi
 import com.withnothin.app.data.remote.service.LikesApi
 import com.withnothin.app.data.remote.service.MediaApi
@@ -15,6 +17,7 @@ import com.withnothin.app.data.remote.service.NotificationsApi
 import com.withnothin.app.data.remote.service.PostsApi
 import com.withnothin.app.data.remote.service.ProfilesApi
 import com.withnothin.app.data.remote.service.ProjectsApi
+import com.withnothin.app.data.remote.service.RecommendationsApi
 import com.withnothin.app.data.remote.service.SavesApi
 import com.withnothin.app.data.remote.service.SearchApi
 import com.withnothin.app.data.remote.service.TechnologiesApi
@@ -125,4 +128,19 @@ object NetworkModule {
     @Singleton
     fun provideVotesApi(retrofit: Retrofit): VotesApi =
         retrofit.create(VotesApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideCommunitiesApi(retrofit: Retrofit): CommunitiesApi =
+        retrofit.create(CommunitiesApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideAdminApi(retrofit: Retrofit): AdminApi =
+        retrofit.create(AdminApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideRecommendationsApi(retrofit: Retrofit): RecommendationsApi =
+        retrofit.create(RecommendationsApi::class.java)
 }

@@ -108,3 +108,19 @@ export interface Answer {
   author: AnswerAuthor;
   createdAt: string;
 }
+
+export interface CommunityOwner {
+  id: string;
+  username: string;
+  displayName: string;
+}
+
+export interface Community {
+  id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  owner: CommunityOwner;
+  membersCount: number;
+  createdAt: string;
+}

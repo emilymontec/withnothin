@@ -3,6 +3,7 @@ package com.withnothin.app.feature.feed
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.withnothin.app.data.remote.service.PostsApi
+import com.withnothin.app.data.remote.service.UsersApi
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,6 +15,7 @@ import javax.inject.Inject
 @HiltViewModel
 class FeedViewModel @Inject constructor(
     private val postsApi: PostsApi,
+    private val usersApi: UsersApi,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(FeedUiState())
@@ -28,7 +30,10 @@ class FeedViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             try {
                 val posts = postsApi.getFeed()
-                _uiState.update { it.copy(posts = posts, isLoading = false) }
+                val currentUser = runCatching { usersApi.getMe() }.getOrNull()
+                _uiState.update {
+                    it.copy(posts = posts, isCurrentUserAdmin = currentUser?.role == "ADMIN", isLoading = false)
+                }
             } catch (e: Exception) {
                 _uiState.update { it.copy(isLoading = false, errorMessage = e.message ?: "No pudimos cargar tu feed") }
             }

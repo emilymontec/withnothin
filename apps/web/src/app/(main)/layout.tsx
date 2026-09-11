@@ -38,6 +38,9 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
           <Link href="/projects" className={styles.navLink}>
             Proyectos
           </Link>
+          <Link href="/communities" className={styles.navLink}>
+            Comunidades
+          </Link>
           <Link href="/saves" className={styles.navLink}>
             Guardados
           </Link>

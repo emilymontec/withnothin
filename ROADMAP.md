@@ -5,7 +5,7 @@
 
 Leyenda: `[x]` completado · `[~]` en progreso · `[ ]` no iniciado
 
-**Última actualización:** Fase 10 completa a nivel de código en backend, web y Android: Q&A con votos con signo y respuesta aceptada, resolviendo la decisión de arquitectura pendiente (`Question` = `Post` con `type=QUESTION`, solo `Answer` necesitaba tabla propia). Con esto, WithNothin tiene implementadas todas las fases del roadmap original salvo Fase 11 (Communities) y Fase 12 (Recommendations + Admin Dashboard completo), ambas marcadas como FUTURE desde el diseño inicial — es decir, se completó todo lo que el roadmap consideraba necesario para un producto funcional.
+**Última actualización:** Fase 12 completa con alcance reducido conscientemente: se resolvió la última decisión de arquitectura pendiente (roles = `USER`/`ADMIN`), se implementó gestión de usuarios/reportes/contenido y recomendaciones basadas en reglas simples (sin ML). Se dejó explícitamente fuera: dashboard visual con gráficos, cálculo de trending, y tracking de nuevas señales de comportamiento — esas piezas requieren decisiones de producto (qué métrica, qué ventana de tiempo) que no correspondía tomar por defecto. **Con esto, el roadmap original completo (Fases 1-12) está implementado en código**, con las limitaciones y simplificaciones documentadas en cada fase.
 
 ---
 
@@ -248,25 +248,41 @@ Leyenda: `[x]` completado · `[~]` en progreso · `[ ]` no iniciado
 
 ---
 
-## Fase 11 — Comunidad estructurada: Communities [ ]
+## Fase 11 — Comunidad estructurada: Communities [x] COMPLETADA (código, incluida UI de Android)
 *FUTURE*
 
-- [ ] Diseño de roles y moderación propia de comunidad
-- [ ] **Backend:** módulo `communities` (+ members)
-- [ ] **Base de datos:** tablas `communities`, `community_members`
-- [ ] **Web/Android:** creación, unión, feed por comunidad
+- [x] **Diseño de roles (v1 mínimo):** solo OWNER + MEMBER — el owner se registra como `CommunityMember` (role OWNER) al crear, mismo patrón que `ProjectMember`. Sin rol MODERATOR intermedio todavía; documentado como extensión futura si una comunidad crece y el owner necesita delegar
+- [x] **Backend:** módulo `communities` (crear, listar, detalle por id y por slug, editar/borrar — solo owner, unirse/salir — self-service sin aprobación, listar miembros, expulsar miembro — solo owner)
+- [x] **Backend:** `CommunitiesPolicy` + test unitario
+- [x] **Decisión de arquitectura (mismo criterio que Fase 9 con Projects):** `posts.communityId` es una FK opcional en vez de una tabla `community_posts` — un post se publica en UNA comunidad como mucho
+- [x] **Backend:** `PostsService.create` valida membresía antes de aceptar un post con `communityId` (no puedes publicar en una comunidad a la que no perteneces)
+- [x] **Base de datos:** tablas `communities`, `community_members`
+- [x] **`shared-types`:** interfaces de `Community` compartidas con la web
+- [x] **Web:** listado `/communities`, creación `/communities/new` (slug autogenerado desde el nombre, editable), detalle `/communities/[slug]` (unirse/salir, feed de posts de la comunidad)
+- [x] **Android:** `CommunitiesApi` (Retrofit) + `CommunitiesListScreen`, `NewCommunityScreen`, `CommunityDetailScreen`
+- [ ] **Pendiente:** el formulario general de creación de post (`PostForm`/`NewPostScreen`) todavía no permite elegir una comunidad al publicar — hoy `communityId` solo se puede enviar llamando la API directamente. Mismo patrón de deuda documentada que quedó con `projectId` en la Fase 9
+- [ ] **Pendiente (requiere tu entorno):** ejecutar `prisma migrate dev` y probar el flujo real de crear comunidad → unirse → publicar
 
 ---
 
-## Fase 12 — Inteligencia: Recommendations, Trending, Admin completo [ ]
+## Fase 12 — Inteligencia: Recommendations, Trending, Admin [x] COMPLETADA (código, incluida UI de Android) — con alcance reducido conscientemente
 *FUTURE*
 
-- [ ] Definir señales de comportamiento a capturar (para recomendaciones futuras)
-- [ ] **Backend:** módulo `recommendations` (versión inicial basada en reglas, no ML)
-- [ ] **Backend:** cálculo de trending (batch simple, sin colas todavía)
-- [ ] **Admin:** dashboard completo (gestión de usuarios, contenido, reportes)
+- [x] **Decisión de roles resuelta:** dos roles alcanzan para v1 — `USER` y `ADMIN` (campo `User.role`, default `USER`). No se separó un rol `MODERATOR` intermedio; un `ADMIN` cubre tanto revisión de reportes como gestión de usuarios/contenido. Se separa en el futuro si el volumen de moderación lo justifica.
+- [x] **Backend:** `@Roles()` + `RolesGuard` (registrado globalmente, no restringe nada salvo que un endpoint lo declare explícitamente) + test unitario
+- [x] **Backend:** módulo `admin` — gestión de usuarios (listar, desactivar/reactivar reutilizando el soft delete que ya existía), revisión de reportes (listar por estado, marcar revisado/descartado), borrado forzado de posts/comentarios (sin requerir ser el autor)
+- [x] **Backend:** módulo `recommendations` — reglas simples, no ML: usuarios sugeridos por 2do grado de follows (con fallback a usuarios más seguidos), tecnologías sugeridas por popularidad entre tus follows (con fallback global) — todo excluyendo bloqueados y ya-seguidos/usados
+- [x] **Backend:** test unitario del algoritmo de sugerencia de usuarios (ranking por 2do grado + exclusiones)
+- [x] **Web:** área `/admin` (protegida cliente-side por rol — la protección real es el backend) con gestión de usuarios y reportes; `SuggestionsPanel` en el feed (usuarios y tecnologías sugeridas)
+- [x] **Android:** `AdminApi`/`RecommendationsApi` (Retrofit), `AdminScreen` (usuarios + reportes en una pantalla con tabs simples), acceso condicional desde el feed solo si `role === "ADMIN"`
+- [ ] **Alcance reducido conscientemente — NO se implementó:**
+  - Un dashboard visual con gráficos/métricas — son endpoints operables, no un panel con diseño propio (documentado explícitamente en `AdminService` como decisión, no como pendiente)
+  - Trending (cálculo de "lo más popular ahora") — quedó fuera de esta pasada; requiere decidir la ventana de tiempo y la métrica (¿likes? ¿comentarios? ¿combinado?) antes de construirse
+  - "Definir señales de comportamiento a capturar" — no se implementó tracking de comportamiento; las recomendaciones actuales se derivan de datos que YA existían (follows, posts, tecnologías), no de señales nuevas
+  - `RecommendationsApi` en Android tiene la capa de datos lista pero no está conectada a ninguna pantalla todavía (a diferencia de la web, que sí muestra el `SuggestionsPanel`)
+- [ ] **Pendiente (requiere tu entorno):** ejecutar `prisma migrate dev`, asignar manualmente `role = 'ADMIN'` a tu propio usuario en la base de datos (no hay UI para auto-promoverse, por diseño), y probar el flujo completo
 
----
+------
 
 ## Fase 13+ — Escalabilidad futura (activar solo si hay evidencia real de necesidad) [ ]
 
@@ -287,7 +303,7 @@ Leyenda: `[x]` completado · `[~]` en progreso · `[ ]` no iniciado
 - [ ] Modelado de `questions`: entidad propia vs especialización de posts → **bloquea Fase 10**
 - [ ] Alcance del campo `metadata` (JSONB) por tipo de post → **bloquea Fase 4**
 - [ ] Política de visibilidad de posts (público/seguidores/privado) → **bloquea Fase 4 y 5**
-- [ ] Roles iniciales: ¿solo `user`/`admin` o también `moderator` desde el día uno? → bloquea el panel de revisión de reportes (Fase 12). Todo lo anterior (Fases 1-10) se implementó sin necesitar roles — cada permiso se resolvió con ownership simple (`authorId === userId`, `ownerId === userId`), que es todo lo que hacía falta hasta ahora
+- [x] Roles iniciales: **resuelto** — `USER` y `ADMIN` (campo `User.role`, default `USER`). Sin `MODERATOR` intermedio en v1. Todo lo anterior a la Fase 12 se implementó sin necesitar roles — cada permiso se resolvió con ownership simple (`authorId === userId`, `ownerId === userId`)
 
 ---
 

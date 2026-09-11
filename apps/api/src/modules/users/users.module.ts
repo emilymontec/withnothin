@@ -6,6 +6,6 @@ import { UsersRepository } from './users.repository';
 @Module({
   controllers: [UsersController],
   providers: [UsersService, UsersRepository],
-  exports: [UsersService], // AuthGuard depende de UsersService para el aprovisionamiento JIT
+  exports: [UsersService, UsersRepository], // AuthGuard usa UsersService; AdminModule usa UsersRepository
 })
 export class UsersModule {}

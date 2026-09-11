@@ -3,6 +3,7 @@ import { apiClient } from '@/lib/api-client';
 export interface CurrentUser {
   id: string;
   email: string;
+  role: string;
   createdAt: string;
 }
 

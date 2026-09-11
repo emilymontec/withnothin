@@ -32,6 +32,8 @@ fun FeedScreen(
     onSearchClick: () -> Unit,
     onBlockedUsersClick: () -> Unit,
     onProjectsClick: () -> Unit,
+    onCommunitiesClick: () -> Unit,
+    onAdminClick: () -> Unit,
     viewModel: FeedViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -43,6 +45,10 @@ fun FeedScreen(
             Button(onClick = onNotificationsClick) { Text("Notificaciones") }
             Button(onClick = onBlockedUsersClick) { Text("Bloqueados") }
             Button(onClick = onProjectsClick) { Text("Proyectos") }
+            Button(onClick = onCommunitiesClick) { Text("Comunidades") }
+            if (state.isCurrentUserAdmin) {
+                Button(onClick = onAdminClick) { Text("Admin") }
+            }
         }
         Button(onClick = onNewPostClick, modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
             Text("Nuevo post")

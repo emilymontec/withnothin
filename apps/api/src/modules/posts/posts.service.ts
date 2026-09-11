@@ -1,9 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { PostsRepository, PostWithRelations } from './posts.repository';
 import { PostsPolicy } from './policies/posts.policy';
 import { TechnologiesService } from '../technologies/technologies.service';
 import { TagsService } from '../tags/tags.service';
 import { MediaService } from '../media/media.service';
+import { CommunitiesService } from '../communities/communities.service';
 import { SupabaseStorageService } from '../../shared/storage/supabase-storage.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
@@ -19,6 +20,7 @@ export class PostsService {
     private readonly technologiesService: TechnologiesService,
     private readonly tagsService: TagsService,
     private readonly mediaService: MediaService,
+    private readonly communitiesService: CommunitiesService,
     private readonly storageService: SupabaseStorageService,
   ) {}
 
@@ -33,6 +35,13 @@ export class PostsService {
       dto.mediaIds ?? [],
     );
 
+    if (dto.communityId) {
+      const isMember = await this.communitiesService.isMember(dto.communityId, userId);
+      if (!isMember) {
+        throw new ForbiddenException('Debes unirte a la comunidad antes de publicar en ella');
+      }
+    }
+
     const post = await this.postsRepository.create({
       authorId: userId,
       type: dto.type,
@@ -42,6 +51,7 @@ export class PostsService {
       technologyIds: technologies,
       tagIds: tags,
       mediaAssetIds: mediaAssets.map((a) => a.id),
+      communityId: dto.communityId,
     });
 
     return this.toResponseDto(post);
@@ -62,6 +72,7 @@ export class PostsService {
       type: query.type,
       technologySlug: query.technology,
       authorId: query.authorId,
+      communityId: query.communityId,
     });
     return posts.map((p) => this.toResponseDto(p));
   }

@@ -7,8 +7,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.withnothin.app.feature.admin.ui.AdminScreen
 import com.withnothin.app.feature.auth.ui.LoginScreen
 import com.withnothin.app.feature.auth.ui.RegisterScreen
+import com.withnothin.app.feature.communities.ui.CommunitiesListScreen
+import com.withnothin.app.feature.communities.ui.CommunityDetailScreen
+import com.withnothin.app.feature.communities.ui.NewCommunityScreen
 import com.withnothin.app.feature.feed.ui.FeedScreen
 import com.withnothin.app.feature.moderation.ui.BlockedUsersScreen
 import com.withnothin.app.feature.notifications.ui.NotificationsScreen
@@ -71,7 +75,13 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
                 onSearchClick = { navController.navigate(Screen.Search.route) },
                 onBlockedUsersClick = { navController.navigate(Screen.BlockedUsers.route) },
                 onProjectsClick = { navController.navigate(Screen.Projects.route) },
+                onCommunitiesClick = { navController.navigate(Screen.Communities.route) },
+                onAdminClick = { navController.navigate(Screen.Admin.route) },
             )
+        }
+
+        composable(Screen.Admin.route) {
+            AdminScreen()
         }
 
         composable(Screen.Search.route) {
@@ -108,6 +118,33 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
         ) {
             ProjectDetailScreen(
                 onOwnerClick = { username -> navController.navigate(Screen.PublicProfile.createRoute(username)) },
+            )
+        }
+
+        composable(Screen.Communities.route) {
+            CommunitiesListScreen(
+                onCommunityClick = { slug -> navController.navigate(Screen.CommunityDetail.createRoute(slug)) },
+                onNewCommunityClick = { navController.navigate(Screen.NewCommunity.route) },
+            )
+        }
+
+        composable(Screen.NewCommunity.route) {
+            NewCommunityScreen(
+                onCreated = { slug ->
+                    navController.navigate(Screen.CommunityDetail.createRoute(slug)) {
+                        popUpTo(Screen.Communities.route)
+                    }
+                },
+            )
+        }
+
+        composable(
+            route = Screen.CommunityDetail.route,
+            arguments = listOf(navArgument("slug") { type = NavType.StringType }),
+        ) {
+            CommunityDetailScreen(
+                onPostClick = { postId -> navController.navigate(Screen.PostDetail.createRoute(postId)) },
+                onAuthorClick = { username -> navController.navigate(Screen.PublicProfile.createRoute(username)) },
             )
         }
 

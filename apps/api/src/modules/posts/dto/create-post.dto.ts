@@ -43,6 +43,12 @@ export class CreatePostDto {
   @IsString({ each: true })
   mediaIds?: string[];
 
+  // Publicar dentro de una comunidad (opcional) — el service valida
+  // que el usuario sea miembro antes de aceptar el post.
+  @IsOptional()
+  @IsString()
+  communityId?: string;
+
   // Campos específicos por tipo (ej. STUCK podría guardar `errorMessage`).
   // Deliberadamente sin schema fijo aún — ver decisiones pendientes de la arquitectura.
   @IsOptional()

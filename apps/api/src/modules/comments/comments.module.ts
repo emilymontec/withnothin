@@ -9,5 +9,6 @@ import { NotificationsModule } from '../notifications/notifications.module';
   imports: [PostsModule, NotificationsModule],
   controllers: [PostCommentsController, CommentsController],
   providers: [CommentsService, CommentsRepository],
+  exports: [CommentsRepository], // AdminModule lo usa para borrado forzado
 })
 export class CommentsModule {}

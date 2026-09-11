@@ -17,6 +17,15 @@ sealed class Screen(val route: String) {
         fun createRoute(projectId: String) = "projects/$projectId"
     }
 
+    data object Communities : Screen("communities")
+    data object NewCommunity : Screen("communities/new")
+
+    data object CommunityDetail : Screen("communities/{slug}") {
+        fun createRoute(slug: String) = "communities/$slug"
+    }
+
+    data object Admin : Screen("admin")
+
     data object PostDetail : Screen("posts/{postId}") {
         fun createRoute(postId: String) = "posts/$postId"
     }

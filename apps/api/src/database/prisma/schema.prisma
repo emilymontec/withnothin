@@ -15,6 +15,11 @@ datasource db {
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
+  // Decisión tomada (Fase 12): dos roles alcanzan para v1 — "USER" y
+  // "ADMIN". No se separa un rol MODERATOR intermedio todavía; un
+  // ADMIN cubre tanto revisión de reportes como gestión de usuarios/
+  // contenido. Se separa en el futuro si el volumen de moderación lo justifica.
+  role      String   @default("USER") // "USER" | "ADMIN"
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
@@ -38,6 +43,8 @@ model User {
   projectMemberships ProjectMember[]
   answers          Answer[]
   votes            Vote[]
+  communities      Community[]
+  communityMemberships CommunityMember[]
 
   @@map("users")
 }
@@ -146,12 +153,16 @@ model Post {
   // de UN proyecto (típicamente BUILD/SHOWCASE, pero no se restringe
   // por tipo — un STUCK también puede ser sobre un proyecto).
   projectId  String?   @map("project_id")
+  // Mismo criterio (Fase 11): un post puede publicarse DENTRO de una
+  // comunidad (FK opcional) en vez de una tabla `community_posts`.
+  communityId String?  @map("community_id")
   createdAt  DateTime  @default(now()) @map("created_at")
   updatedAt  DateTime  @updatedAt @map("updated_at")
   deletedAt  DateTime? @map("deleted_at")
 
   author       User             @relation(fields: [authorId], references: [id])
   project      Project?         @relation(fields: [projectId], references: [id])
+  community    Community?       @relation(fields: [communityId], references: [id])
   media        PostMedia[]
   technologies PostTechnology[]
   tags         PostTag[]
@@ -165,6 +176,7 @@ model Post {
   @@index([createdAt])
   @@index([visibility])
   @@index([projectId])
+  @@index([communityId])
   @@map("posts")
 }
 
@@ -445,4 +457,39 @@ model Vote {
   @@id([userId, answerId])
   @@index([answerId])
   @@map("votes")
+}
+
+/// Comunidades (v1, FUTURE en el roadmap original — se implementa
+/// igual con el mismo nivel de simplicidad que el resto: un solo rol
+/// de gestión (OWNER) además de MEMBER. Moderadores intermedios
+/// (MODERATOR) quedan como extensión futura si la comunidad crece
+/// y el owner necesita delegar — hoy solo el owner administra.
+model Community {
+  id          String    @id @default(uuid())
+  slug        String    @unique
+  name        String
+  description String?
+  ownerId     String    @map("owner_id")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  owner   User              @relation(fields: [ownerId], references: [id])
+  members CommunityMember[]
+  posts   Post[]
+
+  @@map("communities")
+}
+
+model CommunityMember {
+  communityId String   @map("community_id")
+  userId      String   @map("user_id")
+  role        String   @default("MEMBER") // "OWNER" | "MEMBER"
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  community Community @relation(fields: [communityId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+
+  @@id([communityId, userId])
+  @@map("community_members")
 }

@@ -14,4 +14,22 @@ export class ReportsRepository {
   }): Promise<Report> {
     return this.prisma.report.create({ data });
   }
+
+  /** Usado solo por el módulo admin. */
+  findAllForAdmin(status: string | undefined, cursor: string | undefined, limit: number): Promise<Report[]> {
+    return this.prisma.report.findMany({
+      where: status ? { status } : undefined,
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+    });
+  }
+
+  findRawById(id: string): Promise<Report | null> {
+    return this.prisma.report.findUnique({ where: { id } });
+  }
+
+  updateStatus(id: string, status: string): Promise<Report> {
+    return this.prisma.report.update({ where: { id }, data: { status } });
+  }
 }

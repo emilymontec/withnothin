@@ -1,0 +1,17 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.meta {
+  color: var(--color-muted);
+  font-size: 0.85rem;
+}
+
+.divider {
+  border: none;
+  border-top: var(--border-width) solid var(--color-ink);
+  margin: 1.5rem 0;
+}

@@ -15,4 +15,8 @@ export class FindPostsQueryDto extends CursorPaginationDto {
   @IsOptional()
   @IsString()
   authorId?: string;
+
+  @IsOptional()
+  @IsString()
+  communityId?: string;
 }

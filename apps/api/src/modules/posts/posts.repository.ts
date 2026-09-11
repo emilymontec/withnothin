@@ -27,6 +27,7 @@ export class PostsRepository {
     technologyIds: string[];
     tagIds: string[];
     mediaAssetIds: string[];
+    communityId?: string;
   }): Promise<PostWithRelations> {
     return this.prisma.post.create({
       data: {
@@ -35,6 +36,7 @@ export class PostsRepository {
         content: data.content,
         visibility: data.visibility,
         metadata: data.metadata as Prisma.InputJsonValue,
+        communityId: data.communityId,
         technologies: {
           create: data.technologyIds.map((technologyId) => ({ technologyId })),
         },
@@ -67,6 +69,7 @@ export class PostsRepository {
     type?: string;
     technologySlug?: string;
     authorId?: string;
+    communityId?: string;
   }): Promise<PostWithRelations[]> {
     return this.prisma.post.findMany({
       where: {
@@ -74,6 +77,7 @@ export class PostsRepository {
         visibility: 'PUBLIC', // el feed personalizado (seguidores) llega en Fase 5
         type: params.type,
         authorId: params.authorId,
+        communityId: params.communityId,
         technologies: params.technologySlug
           ? { some: { technology: { slug: params.technologySlug } } }
           : undefined,

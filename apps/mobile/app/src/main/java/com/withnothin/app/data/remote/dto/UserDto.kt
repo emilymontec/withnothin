@@ -7,5 +7,6 @@ import com.squareup.moshi.JsonClass
 data class UserDto(
     val id: String,
     val email: String,
+    val role: String,
     @Json(name = "createdAt") val createdAt: String,
 )

@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma/prisma.service';
-import { User } from '@prisma/client';
+import { User, Prisma } from '@prisma/client';
+
+const USER_WITH_PROFILE_INCLUDE = { profile: true } satisfies Prisma.UserInclude;
+export type UserWithProfile = Prisma.UserGetPayload<{ include: typeof USER_WITH_PROFILE_INCLUDE }>;
 
 @Injectable()
 export class UsersRepository {
@@ -22,6 +25,20 @@ export class UsersRepository {
     return this.prisma.user.update({
       where: { id },
       data: { deletedAt: new Date() },
+    });
+  }
+
+  reactivate(id: string): Promise<User> {
+    return this.prisma.user.update({ where: { id }, data: { deletedAt: null } });
+  }
+
+  /** Usado solo por el módulo admin — incluye usuarios desactivados. */
+  findAllForAdmin(cursor: string | undefined, limit: number): Promise<UserWithProfile[]> {
+    return this.prisma.user.findMany({
+      include: USER_WITH_PROFILE_INCLUDE,
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
     });
   }
 }

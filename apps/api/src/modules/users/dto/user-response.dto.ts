@@ -9,6 +9,9 @@ export class UserResponseDto {
   email: string;
 
   @Expose()
+  role: string;
+
+  @Expose()
   createdAt: Date;
 
   constructor(partial: Partial<UserResponseDto>) {
