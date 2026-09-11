@@ -168,16 +168,15 @@ The Android app lives in <code>apps/mobile</code> and opens directly in Android 
 **Emily Monterrosa Castro - Full Stack Developer** <br>
 [GitHub](https://github.com/emilymontec) · [LinkedIn](https://www.linkedin.com/in/emilymontec/) · [Portfolio](https://emilymontec.github.io/portfolio/)
 
-
-<!--
 ---
 
 ## License
 
- License.
+Apache License 2.0
 
 See the [LICENSE](LICENSE) file for additional information.
 
+<!--
 ---
 
 ## Appendices
