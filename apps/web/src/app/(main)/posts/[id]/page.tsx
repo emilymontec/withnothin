@@ -11,12 +11,15 @@ import { CommentForm } from '@/features/comments/components/comment-form';
 import { AnswerForm } from '@/features/answers/components/answer-form';
 import { AnswerList } from '@/features/answers/components/answer-list';
 import { useCurrentUser } from '@/features/users/hooks/use-current-user';
+import { useDocumentTitle } from '@/lib/hooks/use-document-title';
 import styles from './post-detail.module.css';
 
 export default function PostDetailPage() {
   const params = useParams<{ id: string }>();
   const { data: post, isLoading, isError } = usePost(params.id);
   const { data: currentUser } = useCurrentUser();
+
+  useDocumentTitle(post ? post.content.slice(0, 60) : undefined);
 
   if (isLoading) {
     return <p>Cargando post...</p>;
@@ -51,8 +54,12 @@ export default function PostDetailPage() {
       )}
 
       <div className={styles.actions}>
-        <LikeButton postId={post.id} likesCount={post.likesCount} />
-        <SaveButton postId={post.id} />
+        <LikeButton
+          postId={post.id}
+          likesCount={post.likesCount}
+          isLikedByCurrentUser={post.isLikedByCurrentUser}
+        />
+        <SaveButton postId={post.id} isSavedByCurrentUser={post.isSavedByCurrentUser} />
       </div>
 
       <hr className={styles.divider} />

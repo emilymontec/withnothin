@@ -160,4 +160,32 @@ export class PostsRepository {
   softDelete(id: string): Promise<Post> {
     return this.prisma.post.update({ where: { id }, data: { deletedAt: new Date() } });
   }
+
+  /**
+   * Batch lookup de "¿cuáles de estos posts likeó userId?" — se resuelve
+   * aquí (en vez de importar LikesModule) para evitar una dependencia
+   * circular Posts↔Likes; Likes ya depende de Posts. Una sola query,
+   * independientemente de cuántos posts se estén paginando.
+   */
+  async findLikedPostIds(userId: string, postIds: string[]): Promise<Set<string>> {
+    if (postIds.length === 0) return new Set();
+    const likes = await this.prisma.like.findMany({
+      where: { userId, postId: { in: postIds } },
+      select: { postId: true },
+    });
+    return new Set(likes.map((l) => l.postId));
+  }
+
+  /**
+   * Igual criterio que findLikedPostIds — batch, resuelto acá para
+   * evitar un ciclo Posts↔Saves (SavesModule ya depende de PostsModule).
+   */
+  async findSavedPostIds(userId: string, postIds: string[]): Promise<Set<string>> {
+    if (postIds.length === 0) return new Set();
+    const saves = await this.prisma.save.findMany({
+      where: { userId, postId: { in: postIds } },
+      select: { postId: true },
+    });
+    return new Set(saves.map((s) => s.postId));
+  }
 }

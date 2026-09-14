@@ -17,7 +17,7 @@ export function useFollowing(userId: string) {
   });
 }
 
-export function useToggleFollow(userId: string) {
+export function useToggleFollow(userId: string, username?: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -26,6 +26,13 @@ export function useToggleFollow(userId: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['follows', 'followers', userId] });
       queryClient.invalidateQueries({ queryKey: ['posts', 'feed'] });
+      // El perfil trae isFollowedByCurrentUser/followersCount — sin
+      // invalidar esto, el botón y el contador de seguidores del
+      // perfil visitado quedan desactualizados tras seguir/dejar de
+      // seguir hasta un refresh manual.
+      if (username) {
+        queryClient.invalidateQueries({ queryKey: ['profile', username] });
+      }
     },
   });
 }

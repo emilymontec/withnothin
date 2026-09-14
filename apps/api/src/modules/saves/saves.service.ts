@@ -27,7 +27,13 @@ export class SavesService {
     limit: number,
   ): Promise<PostResponseDto[]> {
     const posts = await this.savesRepository.findSavedPostsForUser(userId, cursor, limit);
-    return posts.map((p) => this.postsService.toResponseDto(p));
+    const likedPostIds = await this.postsRepository.findLikedPostIds(
+      userId,
+      posts.map((p) => p.id),
+    );
+    // Son posts guardados por este mismo userId — isSavedByCurrentUser
+    // es trivialmente true acá, no hace falta otra query.
+    return posts.map((p) => this.postsService.toResponseDto(p, likedPostIds.has(p.id), true));
   }
 
   private async assertPostExists(postId: string): Promise<void> {

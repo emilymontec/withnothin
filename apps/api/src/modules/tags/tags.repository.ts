@@ -21,4 +21,13 @@ export class TagsRepository {
   create(data: { name: string; slug: string }): Promise<Tag> {
     return this.prisma.tag.create({ data });
   }
+
+  /** Mismo criterio que TechnologiesRepository.upsertBySlug — ver ese comentario. */
+  upsertBySlug(data: { name: string; slug: string }): Promise<Tag> {
+    return this.prisma.tag.upsert({
+      where: { slug: data.slug },
+      update: {},
+      create: data,
+    });
+  }
 }

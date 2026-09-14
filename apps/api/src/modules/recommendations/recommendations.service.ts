@@ -39,8 +39,14 @@ export class RecommendationsService {
     const excludeIds = new Set([userId, ...followeeIds, ...blockedIds]);
     const counts = new Map<string, number>();
 
-    for (const followeeId of followeeIds.slice(0, MAX_FOLLOWEES_TO_EXPAND)) {
-      const secondDegreeIds = await this.followsService.getFolloweeIds(followeeId);
+    // Una sola query batched en vez de una por cada followee (antes era
+    // un for...of secuencial con await adentro: hasta 50 round-trips a
+    // la DB, uno por uno, para una sola respuesta HTTP).
+    const secondDegreeByFollowee = await this.followsService.getFolloweeIdsForMany(
+      followeeIds.slice(0, MAX_FOLLOWEES_TO_EXPAND),
+    );
+
+    for (const secondDegreeIds of secondDegreeByFollowee.values()) {
       for (const candidateId of secondDegreeIds) {
         if (excludeIds.has(candidateId)) continue;
         counts.set(candidateId, (counts.get(candidateId) ?? 0) + 1);

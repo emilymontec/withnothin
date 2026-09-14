@@ -13,10 +13,6 @@ export class TagsService {
 
   async findOrCreateByName(name: string): Promise<Tag> {
     const slug = slugify(name);
-    const existing = await this.tagsRepository.findBySlug(slug);
-    if (existing) {
-      return existing;
-    }
-    return this.tagsRepository.create({ name: name.trim(), slug });
+    return this.tagsRepository.upsertBySlug({ name: name.trim(), slug });
   }
 }

@@ -1,12 +1,20 @@
 package com.withnothin.app.core.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.withnothin.app.core.session.SessionObserverViewModel
 import com.withnothin.app.feature.admin.ui.AdminScreen
 import com.withnothin.app.feature.auth.ui.LoginScreen
 import com.withnothin.app.feature.auth.ui.RegisterScreen
@@ -27,7 +35,28 @@ import com.withnothin.app.feature.saves.ui.SavesScreen
 import com.withnothin.app.feature.search.ui.SearchScreen
 
 @Composable
-fun AppNavHost(navController: NavHostController = rememberNavController()) {
+fun AppNavHost(
+    navController: NavHostController = rememberNavController(),
+    sessionObserver: SessionObserverViewModel = hiltViewModel(),
+) {
+    // Guard global: si la sesión se cierra (logout, o un token que deja
+    // de ser válido) estando en cualquier pantalla que no sea
+    // Login/Register, se vuelve a Login y se limpia todo el back stack
+    // — así no queda una pantalla autenticada accesible con "atrás"
+    // después de haber cerrado sesión. Antes de esto, signOut() existía
+    // pero nada reaccionaba a él fuera de la propia pantalla de Login.
+    val isAuthenticated by sessionObserver.isAuthenticated.collectAsState()
+    var wasAuthenticated by remember { mutableStateOf(isAuthenticated) }
+
+    LaunchedEffect(isAuthenticated) {
+        if (wasAuthenticated && !isAuthenticated) {
+            navController.navigate(Screen.Login.route) {
+                popUpTo(0) { inclusive = true }
+            }
+        }
+        wasAuthenticated = isAuthenticated
+    }
+
     NavHost(navController = navController, startDestination = Screen.Login.route) {
         composable(Screen.Login.route) {
             LoginScreen(

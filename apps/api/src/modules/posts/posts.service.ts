@@ -57,15 +57,22 @@ export class PostsService {
     return this.toResponseDto(post);
   }
 
-  async findById(id: string): Promise<PostResponseDto> {
+  async findById(id: string, currentUserId?: string): Promise<PostResponseDto> {
     const post = await this.postsRepository.findById(id);
     if (!post) {
       throw new NotFoundException('Post no encontrado');
     }
-    return this.toResponseDto(post);
+    if (!currentUserId) {
+      return this.toResponseDto(post);
+    }
+    const [isLiked, isSaved] = await Promise.all([
+      this.postsRepository.findLikedPostIds(currentUserId, [post.id]),
+      this.postsRepository.findSavedPostIds(currentUserId, [post.id]),
+    ]);
+    return this.toResponseDto(post, isLiked.has(post.id), isSaved.has(post.id));
   }
 
-  async findMany(query: FindPostsQueryDto): Promise<PostResponseDto[]> {
+  async findMany(query: FindPostsQueryDto, currentUserId?: string): Promise<PostResponseDto[]> {
     const posts = await this.postsRepository.findMany({
       cursor: query.cursor,
       limit: query.limit,
@@ -74,7 +81,16 @@ export class PostsService {
       authorId: query.authorId,
       communityId: query.communityId,
     });
-    return posts.map((p) => this.toResponseDto(p));
+
+    const postIds = posts.map((p) => p.id);
+    const [likedPostIds, savedPostIds] = currentUserId
+      ? await Promise.all([
+          this.postsRepository.findLikedPostIds(currentUserId, postIds),
+          this.postsRepository.findSavedPostIds(currentUserId, postIds),
+        ])
+      : [new Set<string>(), new Set<string>()];
+
+    return posts.map((p) => this.toResponseDto(p, likedPostIds.has(p.id), savedPostIds.has(p.id)));
   }
 
   async update(userId: string, id: string, dto: UpdatePostDto): Promise<PostResponseDto> {
@@ -124,7 +140,11 @@ export class PostsService {
     return tags.map((t) => t.id);
   }
 
-  toResponseDto(post: PostWithRelations): PostResponseDto {
+  toResponseDto(
+    post: PostWithRelations,
+    isLikedByCurrentUser = false,
+    isSavedByCurrentUser = false,
+  ): PostResponseDto {
     return new PostResponseDto({
       id: post.id,
       type: post.type,
@@ -150,6 +170,8 @@ export class PostsService {
       })),
       likesCount: post._count.likes,
       commentsCount: post._count.comments,
+      isLikedByCurrentUser,
+      isSavedByCurrentUser,
       createdAt: post.createdAt,
       updatedAt: post.updatedAt,
     });

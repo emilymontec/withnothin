@@ -4,6 +4,10 @@ import { Throttle } from '@nestjs/throttler';
 import { SearchService } from './search.service';
 import { SearchQueryDto } from './dto/search-query.dto';
 import { Public } from '../../common/decorators/public.decorator';
+import {
+  OptionalCurrentUser,
+  AuthenticatedUser,
+} from '../../common/decorators/current-user.decorator';
 
 // Búsqueda pública — se puede explorar WithNothin sin cuenta, igual
 // que el listado de posts (ver módulo posts).
@@ -15,7 +19,10 @@ export class SearchController {
 
   @Throttle({ default: { limit: 30, ttl: 60_000 } }) // más laxo que creación de contenido, pero sigue limitado
   @Get()
-  search(@Query() query: SearchQueryDto) {
-    return this.searchService.search(query.q, query.type);
+  search(
+    @Query() query: SearchQueryDto,
+    @OptionalCurrentUser() user: AuthenticatedUser | undefined,
+  ) {
+    return this.searchService.search(query.q, query.type, user?.id);
   }
 }

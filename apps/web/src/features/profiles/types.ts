@@ -6,6 +6,9 @@ export interface Profile {
   avatarUrl: string | null;
   headline: string | null;
   location: string | null;
+  followersCount: number;
+  followingCount: number;
+  isFollowedByCurrentUser: boolean;
   createdAt: string;
 }
 

@@ -59,7 +59,11 @@ export function useToggleLike(postId: string) {
 
       queryClient.setQueryData(['posts', postId], (old: any) =>
         old
-          ? { ...old, likesCount: old.likesCount + (isCurrentlyLiked ? -1 : 1) }
+          ? {
+              ...old,
+              likesCount: old.likesCount + (isCurrentlyLiked ? -1 : 1),
+              isLikedByCurrentUser: !isCurrentlyLiked,
+            }
           : old,
       );
 

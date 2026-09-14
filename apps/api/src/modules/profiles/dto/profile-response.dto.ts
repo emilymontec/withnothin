@@ -24,6 +24,15 @@ export class ProfileResponseDto {
   location: string | null;
 
   @Expose()
+  followersCount: number;
+
+  @Expose()
+  followingCount: number;
+
+  @Expose()
+  isFollowedByCurrentUser: boolean;
+
+  @Expose()
   createdAt: Date;
 
   constructor(partial: Partial<ProfileResponseDto>) {

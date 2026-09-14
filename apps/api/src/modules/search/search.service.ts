@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { SearchRepository } from './search.repository';
 import { PostsService } from '../posts/posts.service';
+import { PostsRepository } from '../posts/posts.repository';
 import { TechnologiesService } from '../technologies/technologies.service';
 import { SearchResultsDto } from './dto/search-results.dto';
 import type { SearchType } from './dto/search-query.dto';
@@ -12,10 +13,15 @@ export class SearchService {
   constructor(
     private readonly searchRepository: SearchRepository,
     private readonly postsService: PostsService,
+    private readonly postsRepository: PostsRepository,
     private readonly technologiesService: TechnologiesService,
   ) {}
 
-  async search(query: string, type: SearchType = 'all'): Promise<SearchResultsDto> {
+  async search(
+    query: string,
+    type: SearchType = 'all',
+    currentUserId?: string,
+  ): Promise<SearchResultsDto> {
     const wantsPosts = type === 'all' || type === 'posts';
     const wantsProfiles = type === 'all' || type === 'profiles';
     const wantsTechnologies = type === 'all' || type === 'technologies';
@@ -26,8 +32,25 @@ export class SearchService {
       wantsTechnologies ? this.technologiesService.findAll(query) : null,
     ]);
 
+    const likedPostIds =
+      posts && currentUserId
+        ? await this.postsRepository.findLikedPostIds(
+            currentUserId,
+            posts.map((p) => p.id),
+          )
+        : new Set<string>();
+    const savedPostIds =
+      posts && currentUserId
+        ? await this.postsRepository.findSavedPostIds(
+            currentUserId,
+            posts.map((p) => p.id),
+          )
+        : new Set<string>();
+
     return new SearchResultsDto({
-      posts: posts?.map((p) => this.postsService.toResponseDto(p)),
+      posts: posts?.map((p) =>
+        this.postsService.toResponseDto(p, likedPostIds.has(p.id), savedPostIds.has(p.id)),
+      ),
       profiles: profiles?.map((p) => ({
         userId: p.userId,
         username: p.username,

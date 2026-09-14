@@ -29,6 +29,9 @@ export class AnswerResponseDto {
   votesScore: number;
 
   @Expose()
+  currentUserVote: number;
+
+  @Expose()
   @Type(() => AnswerAuthorDto)
   author: AnswerAuthorDto;
 

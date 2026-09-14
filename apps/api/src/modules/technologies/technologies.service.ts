@@ -19,10 +19,6 @@ export class TechnologiesService {
    */
   async findOrCreateByName(name: string): Promise<Technology> {
     const slug = slugify(name);
-    const existing = await this.technologiesRepository.findBySlug(slug);
-    if (existing) {
-      return existing;
-    }
-    return this.technologiesRepository.create({ name: name.trim(), slug });
+    return this.technologiesRepository.upsertBySlug({ name: name.trim(), slug });
   }
 }

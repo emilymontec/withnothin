@@ -1,13 +1,24 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useToggleSave } from '../hooks/use-saves';
 import styles from './save-button.module.css';
 
-export function SaveButton({ postId }: { postId: string }) {
-  // Mismo enfoque que LikeButton: estado local optimista porque la
-  // API todavía no informa isSavedByCurrentUser en la respuesta del post.
-  const [isSaved, setIsSaved] = useState(false);
+interface SaveButtonProps {
+  postId: string;
+  isSavedByCurrentUser: boolean;
+}
+
+export function SaveButton({ postId, isSavedByCurrentUser }: SaveButtonProps) {
+  // La API ya expone isSavedByCurrentUser (antes no, y este botón
+  // arrancaba siempre en "no guardado" sin importar el estado real —
+  // mismo bug que tenía LikeButton, ver AUDITORIA-fase12.md).
+  const [isSaved, setIsSaved] = useState(isSavedByCurrentUser);
+
+  useEffect(() => {
+    setIsSaved(isSavedByCurrentUser);
+  }, [isSavedByCurrentUser]);
+
   const toggleSave = useToggleSave(postId);
 
   function handleClick() {

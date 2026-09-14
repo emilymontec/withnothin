@@ -5,7 +5,7 @@ import { SupabaseStorageService } from '../../shared/storage/supabase-storage.se
 import { RequestUploadUrlDto } from './dto/request-upload-url.dto';
 import { UploadUrlResponseDto } from './dto/upload-url-response.dto';
 import { MediaResponseDto } from './dto/media-response.dto';
-import { isAllowedImageType, isWithinSizeLimit } from './media.constants';
+import { getExtensionForMimeType, isAllowedImageType, isWithinSizeLimit } from './media.constants';
 
 @Injectable()
 export class MediaService {
@@ -31,7 +31,7 @@ export class MediaService {
       throw new BadRequestException('El archivo excede el tamaño máximo permitido');
     }
 
-    const extension = dto.fileName.split('.').pop() ?? 'bin';
+    const extension = getExtensionForMimeType(dto.mimeType);
     const path = `${userId}/${randomUUID()}.${extension}`;
 
     const signed = await this.storageService.createSignedUploadUrl(path);

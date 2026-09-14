@@ -17,11 +17,26 @@ import javax.inject.Inject
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val supabase: SupabaseClient,
-    private val sessionManager: SessionManager,
+    sessionManager: SessionManager,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AuthUiState())
     val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
+
+    init {
+        // Fuente única de verdad de "¿hay sesión?": SessionManager, que
+        // SessionSync mantiene sincronizado con Supabase durante toda la
+        // vida del proceso (login, refresh en segundo plano, logout, y
+        // sesión restaurada de una apertura anterior de la app). Antes,
+        // isAuthenticated solo se ponía en true dentro de runAuthAction,
+        // así que un usuario con sesión válida seguía viendo la pantalla
+        // de Login cada vez que abría la app — ver AUDITORIA-fase12.md.
+        viewModelScope.launch {
+            sessionManager.tokenFlow.collect { token ->
+                _uiState.update { it.copy(isAuthenticated = token != null) }
+            }
+        }
+    }
 
     fun onEmailChange(value: String) = _uiState.update { it.copy(email = value, errorMessage = null) }
     fun onPasswordChange(value: String) = _uiState.update { it.copy(password = value, errorMessage = null) }
@@ -50,6 +65,20 @@ class AuthViewModel @Inject constructor(
         }
     }
 
+    fun signOut() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            try {
+                supabase.gotrue.logout()
+                // isAuthenticated se actualiza solo, vía el collect de
+                // sessionManager.tokenFlow en el init — no se pisa acá.
+                _uiState.update { it.copy(isLoading = false) }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isLoading = false, errorMessage = e.message ?: "Error al cerrar sesión") }
+            }
+        }
+    }
+
     private fun runAuthAction(action: suspend () -> Unit) {
         val validationError = validate()
         if (validationError != null) {
@@ -61,11 +90,9 @@ class AuthViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             try {
                 action()
-                val token = supabase.gotrue.currentAccessTokenOrNull()
-                if (token != null) {
-                    sessionManager.saveToken(token)
-                }
-                _uiState.update { it.copy(isLoading = false, isAuthenticated = token != null) }
+                // Igual que en signOut: isAuthenticated se actualiza solo
+                // vía el collect de sessionManager.tokenFlow en el init.
+                _uiState.update { it.copy(isLoading = false) }
             } catch (e: Exception) {
                 _uiState.update { it.copy(isLoading = false, errorMessage = e.message ?: "Error de autenticación") }
             }

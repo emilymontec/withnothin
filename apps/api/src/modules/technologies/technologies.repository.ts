@@ -23,4 +23,19 @@ export class TechnologiesRepository {
   create(data: { name: string; slug: string }): Promise<Technology> {
     return this.prisma.technology.create({ data });
   }
+
+  /**
+   * upsert por slug: atómico a nivel de DB. find-then-create (el
+   * patrón anterior) tiene una race condition real — si dos posts
+   * simultáneos etiquetan la misma tecnología nueva, ambos pasan el
+   * check `findBySlug` en null y el segundo `create` choca contra el
+   * `@unique` de slug, devolviendo un 500 en vez de resolverse.
+   */
+  upsertBySlug(data: { name: string; slug: string }): Promise<Technology> {
+    return this.prisma.technology.upsert({
+      where: { slug: data.slug },
+      update: {},
+      create: data,
+    });
+  }
 }

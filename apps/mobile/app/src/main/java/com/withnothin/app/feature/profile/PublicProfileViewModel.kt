@@ -40,16 +40,20 @@ class PublicProfileViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             try {
                 val profile = profilesApi.getByUsername(username)
-                val posts = postsApi.findMany() // TODO: filtrar por authorId cuando el endpoint lo soporte desde este cliente
+                val posts = postsApi.findMany(authorId = profile.userId)
                 val followers = followsApi.getFollowers(profile.userId)
                 val currentUser = runCatching { usersApi.getMe() }.getOrNull()
 
                 _uiState.update {
                     it.copy(
                         profile = profile,
-                        posts = posts.filter { post -> post.author.username == username },
+                        posts = posts,
                         followers = followers,
-                        isFollowing = followers.any { f -> f.userId == currentUser?.id },
+                        // El backend ya informa si el usuario actual sigue a este perfil
+                        // (profile.isFollowedByCurrentUser) — antes se inferia buscando
+                        // al usuario actual dentro de la lista de followers, lo cual
+                        // fallaba en cuanto esa lista se paginara.
+                        isFollowing = profile.isFollowedByCurrentUser,
                         isCurrentUser = currentUser?.id == profile.userId,
                         isLoading = false,
                     )

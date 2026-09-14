@@ -17,9 +17,16 @@ describe('RecommendationsService', () => {
         RecommendationsService,
         {
           provide: RecommendationsRepository,
-          useValue: { findMostFollowedUserIds: jest.fn(), findTechnologyIdsUsedByAuthor: jest.fn(), findPopularTechnologies: jest.fn() },
+          useValue: {
+            findMostFollowedUserIds: jest.fn(),
+            findTechnologyIdsUsedByAuthor: jest.fn(),
+            findPopularTechnologies: jest.fn(),
+          },
         },
-        { provide: FollowsService, useValue: { getFolloweeIds: jest.fn() } },
+        {
+          provide: FollowsService,
+          useValue: { getFolloweeIds: jest.fn(), getFolloweeIdsForMany: jest.fn() },
+        },
         { provide: BlocksService, useValue: { getBlockedEitherDirectionIds: jest.fn().mockResolvedValue([]) } },
         { provide: ProfilesService, useValue: { findSummariesByUserIds: jest.fn() } },
       ],
@@ -34,12 +41,13 @@ describe('RecommendationsService', () => {
   it('rankea candidatos de 2do grado por cuántos follows los siguen', async () => {
     // user-1 sigue a A y B. A sigue a X e Y. B sigue a X.
     // X debería rankear primero (2 menciones), Y segundo (1 mención).
-    followsService.getFolloweeIds.mockImplementation((id: string) => {
-      if (id === 'user-1') return Promise.resolve(['A', 'B']);
-      if (id === 'A') return Promise.resolve(['X', 'Y']);
-      if (id === 'B') return Promise.resolve(['X']);
-      return Promise.resolve([]);
-    });
+    followsService.getFolloweeIds.mockResolvedValue(['A', 'B']);
+    followsService.getFolloweeIdsForMany.mockResolvedValue(
+      new Map([
+        ['A', ['X', 'Y']],
+        ['B', ['X']],
+      ]),
+    );
     profilesService.findSummariesByUserIds.mockImplementation((ids: string[]) =>
       Promise.resolve(ids.map((id) => ({ userId: id, username: id, displayName: id, avatarUrl: null }))),
     );
@@ -52,16 +60,37 @@ describe('RecommendationsService', () => {
   });
 
   it('excluye usuarios ya seguidos y a uno mismo de las sugerencias', async () => {
-    followsService.getFolloweeIds.mockImplementation((id: string) => {
-      if (id === 'user-1') return Promise.resolve(['A']);
-      if (id === 'A') return Promise.resolve(['user-1', 'A']); // se sugiere a sí mismo y de vuelta al usuario — deben filtrarse
-      return Promise.resolve([]);
-    });
+    followsService.getFolloweeIds.mockResolvedValue(['A']);
+    // A "sugiere de vuelta" al propio user-1 y a sí mismo — deben filtrarse.
+    followsService.getFolloweeIdsForMany.mockResolvedValue(new Map([['A', ['user-1', 'A']]]));
     profilesService.findSummariesByUserIds.mockResolvedValue([]);
     repository.findMostFollowedUserIds.mockResolvedValue([]);
 
     const result = await service.suggestUsersToFollow('user-1', 5);
 
     expect(result).toEqual([]);
+  });
+
+  it('expande a 2do grado con UNA sola llamada batched, no una por followee', async () => {
+    // Antes: un for...of con await adentro llamaba getFolloweeIds() una
+    // vez por cada followee (hasta 50 round-trips secuenciales a la DB
+    // para una sola respuesta HTTP) — ver AUDITORIA-fase12.md.
+    const followeeIds = ['a', 'b', 'c'];
+    followsService.getFolloweeIds.mockResolvedValue(followeeIds);
+    followsService.getFolloweeIdsForMany.mockResolvedValue(
+      new Map([
+        ['a', ['x', 'y']],
+        ['b', ['x']],
+        ['c', []],
+      ]),
+    );
+    profilesService.findSummariesByUserIds.mockResolvedValue([]);
+    repository.findMostFollowedUserIds.mockResolvedValue([]);
+
+    await service.suggestUsersToFollow('user-1');
+
+    expect(followsService.getFolloweeIdsForMany).toHaveBeenCalledTimes(1);
+    expect(followsService.getFolloweeIdsForMany).toHaveBeenCalledWith(followeeIds);
+    expect(followsService.getFolloweeIds).toHaveBeenCalledTimes(1); // solo para el propio user-1
   });
 });

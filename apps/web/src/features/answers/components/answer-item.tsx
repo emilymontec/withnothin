@@ -15,7 +15,12 @@ export function AnswerItem({ postId, answer, canAccept }: AnswerItemProps) {
 
   return (
     <div className={`${styles.item} ${answer.isAccepted ? styles.accepted : ''}`}>
-      <VoteButtons postId={postId} answerId={answer.id} votesScore={answer.votesScore} />
+      <VoteButtons
+        postId={postId}
+        answerId={answer.id}
+        votesScore={answer.votesScore}
+        currentUserVote={answer.currentUserVote as 1 | -1 | 0}
+      />
       <div className={styles.content}>
         {answer.isAccepted && <span className={styles.acceptedBadge}>✓ Respuesta aceptada</span>}
         <p>{answer.content}</p>

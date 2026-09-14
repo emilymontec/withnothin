@@ -1,32 +1,37 @@
 'use client';
 
 import { useCurrentUser } from '@/features/users/hooks/use-current-user';
-import { useFollowers, useToggleFollow } from '../hooks/use-follows';
+import { useToggleFollow } from '../hooks/use-follows';
 import { Button } from '@/components/ui/button';
 
-export function FollowButton({ profileUserId }: { profileUserId: string }) {
+interface FollowButtonProps {
+  profileUserId: string;
+  username: string;
+  isFollowedByCurrentUser: boolean;
+}
+
+/**
+ * Antes traía la lista completa de seguidores solo para ver si el
+ * usuario actual estaba adentro (no escala, y rompe en cuanto esa
+ * lista se pagine). Ahora recibe el estado real directo del perfil
+ * (profile.isFollowedByCurrentUser), que la API ya calcula.
+ */
+export function FollowButton({ profileUserId, username, isFollowedByCurrentUser }: FollowButtonProps) {
   const { data: currentUser } = useCurrentUser();
-  // Atajo simple para v1: se trae la lista completa de seguidores para
-  // ver si el usuario actual está en ella. Si los perfiles empiezan a
-  // tener miles de seguidores, esto debe reemplazarse por un endpoint
-  // dedicado GET /users/:id/follow-status.
-  const { data: followers = [] } = useFollowers(profileUserId);
-  const toggleFollow = useToggleFollow(profileUserId);
+  const toggleFollow = useToggleFollow(profileUserId, username);
 
   // No mostrar el botón en el propio perfil.
   if (!currentUser || currentUser.id === profileUserId) {
     return null;
   }
 
-  const isFollowing = followers.some((f) => f.userId === currentUser.id);
-
   return (
     <Button
-      variant={isFollowing ? 'secondary' : 'primary'}
-      onClick={() => toggleFollow.mutate(isFollowing)}
+      variant={isFollowedByCurrentUser ? 'secondary' : 'primary'}
+      onClick={() => toggleFollow.mutate(isFollowedByCurrentUser)}
       disabled={toggleFollow.isPending}
     >
-      {isFollowing ? 'Dejar de seguir' : 'Seguir'}
+      {isFollowedByCurrentUser ? 'Dejar de seguir' : 'Seguir'}
     </Button>
   );
 }

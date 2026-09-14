@@ -1,14 +1,18 @@
 import type { Metadata } from 'next';
-import { Josefin_Sans } from 'next/font/google';
 import localFont from 'next/font/local';
 import { AppProviders } from './providers';
 import './globals.css';
 
-// Josefin Sans = tipografía "Josefin" del brandboard, exacta.
-const josefinSans = Josefin_Sans({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
+// Josefin Sans — bundle local (variable font, SIL OFL, ver
+// assets/fonts/OFL-JosefinSans.txt), igual que en Android
+// (res/font/josefin_sans.ttf). Antes se cargaba vía next/font/google,
+// que reintroduce en el build web justo la dependencia de red que se
+// evitó a propósito del lado de Android — ver AUDITORIA-fase12.md.
+const josefinSans = localFont({
+  src: '../assets/fonts/JosefinSans-Variable.ttf',
   variable: '--font-josefin-sans',
+  weight: '100 700',
+  display: 'swap',
 });
 
 // Bristol — archivo de fuente real provisto por el equipo de diseño.

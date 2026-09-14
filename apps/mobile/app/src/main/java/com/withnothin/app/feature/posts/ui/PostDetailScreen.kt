@@ -150,9 +150,16 @@ private fun AnswerRow(
         }
         Text(answer.content)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 4.dp)) {
-            TextButton(onClick = { onVote(1) }) { Text("▲") }
+            // Toggle con el mismo criterio que la web: si ya estaba en ese
+            // valor, se retira el voto (0) en vez de repetirlo. Antes esto
+            // siempre mandaba 1/-1 fijo y nunca se podía des-votar.
+            TextButton(onClick = { onVote(if (answer.currentUserVote == 1) 0 else 1) }) {
+                Text(if (answer.currentUserVote == 1) "▲ ✓" else "▲")
+            }
             Text("${answer.votesScore}")
-            TextButton(onClick = { onVote(-1) }) { Text("▼") }
+            TextButton(onClick = { onVote(if (answer.currentUserVote == -1) 0 else -1) }) {
+                Text(if (answer.currentUserVote == -1) "▼ ✓" else "▼")
+            }
             Text("@${answer.author.username}")
             if (canAccept && !answer.isAccepted) {
                 TextButton(onClick = onAccept) { Text("Aceptar") }

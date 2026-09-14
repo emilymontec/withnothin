@@ -29,4 +29,27 @@ export class ProfilesRepository {
   update(userId: string, data: Partial<Omit<Profile, 'id' | 'userId'>>): Promise<Profile> {
     return this.prisma.profile.update({ where: { userId }, data });
   }
+
+  /**
+   * Conteos + relación con el usuario actual para la cabecera de perfil.
+   * Se resuelve acá con Prisma directo (no importando FollowsModule) porque
+   * FollowsModule ya importa ProfilesModule — importarlo de vuelta crearía
+   * una dependencia circular. Mismo criterio que PostsRepository.findLikedPostIds.
+   */
+  async getFollowStats(
+    userId: string,
+    currentUserId?: string,
+  ): Promise<{ followersCount: number; followingCount: number; isFollowedByCurrentUser: boolean }> {
+    const [followersCount, followingCount, followRow] = await Promise.all([
+      this.prisma.follow.count({ where: { followeeId: userId } }),
+      this.prisma.follow.count({ where: { followerId: userId } }),
+      currentUserId && currentUserId !== userId
+        ? this.prisma.follow.findUnique({
+            where: { followerId_followeeId: { followerId: currentUserId, followeeId: userId } },
+          })
+        : null,
+    ]);
+
+    return { followersCount, followingCount, isFollowedByCurrentUser: followRow !== null };
+  }
 }

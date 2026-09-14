@@ -9,6 +9,7 @@ data class AnswerDto(
     val content: String,
     @Json(name = "isAccepted") val isAccepted: Boolean,
     @Json(name = "votesScore") val votesScore: Int,
+    @Json(name = "currentUserVote") val currentUserVote: Int = 0, // -1 | 0 | 1
     val author: PostAuthorDto,
     @Json(name = "createdAt") val createdAt: String,
 )

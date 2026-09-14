@@ -58,6 +58,10 @@ class PostDetailViewModel @Inject constructor(
                         post = post,
                         comments = comments,
                         answers = answers,
+                        // Antes quedaban siempre en false ("la API no expone
+                        // esto todavía") — ya lo expone, ver AUDITORIA-fase12.md.
+                        isLiked = post.isLikedByCurrentUser,
+                        isSaved = post.isSavedByCurrentUser,
                         isCurrentUserAuthor = currentUser?.id == post.author.id,
                         isLoading = false,
                     )

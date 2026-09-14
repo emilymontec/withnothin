@@ -3,7 +3,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { ProfilesService } from './profiles.service';
 import { CreateProfileDto } from './dto/create-profile.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
-import { CurrentUser, AuthenticatedUser } from '../../common/decorators/current-user.decorator';
+import { CurrentUser, AuthenticatedUser, OptionalCurrentUser } from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
 
 @ApiTags('profiles')
@@ -32,7 +32,10 @@ export class ProfilesController {
   // Los perfiles son públicos por defecto — se consulta sin autenticación.
   @Public()
   @Get(':username')
-  findByUsername(@Param('username') username: string) {
-    return this.profilesService.findByUsername(username);
+  findByUsername(
+    @Param('username') username: string,
+    @OptionalCurrentUser() user: AuthenticatedUser | undefined,
+  ) {
+    return this.profilesService.findByUsername(username, user?.id);
   }
 }

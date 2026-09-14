@@ -1,19 +1,26 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useToggleLike } from '../hooks/use-posts';
 import styles from './like-button.module.css';
 
 interface LikeButtonProps {
   postId: string;
   likesCount: number;
+  isLikedByCurrentUser: boolean;
 }
 
-export function LikeButton({ postId, likesCount }: LikeButtonProps) {
-  // Estado local de "me gusta" porque la API no expone todavía
-  // isLikedByCurrentUser en la respuesta del post — se agrega si
-  // se vuelve necesario (ver decisiones pendientes del roadmap).
-  const [isLiked, setIsLiked] = useState(false);
+export function LikeButton({ postId, likesCount, isLikedByCurrentUser }: LikeButtonProps) {
+  // La API ya expone isLikedByCurrentUser (antes no, y este botón
+  // arrancaba siempre en "no me gusta" sin importar el estado real).
+  // Se mantiene estado local solo para el toggle optimista al hacer
+  // click, resincronizado si el servidor devuelve otra cosa.
+  const [isLiked, setIsLiked] = useState(isLikedByCurrentUser);
+
+  useEffect(() => {
+    setIsLiked(isLikedByCurrentUser);
+  }, [isLikedByCurrentUser]);
+
   const toggleLike = useToggleLike(postId);
 
   function handleClick() {

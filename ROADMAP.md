@@ -109,7 +109,7 @@ Leyenda: `[x]` completado · `[~]` en progreso · `[ ]` no iniciado
 *Fuera del roadmap original — incorporada tras recibir el brandboard del proyecto*
 
 - [x] Design tokens en `apps/web/src/app/globals.css` (paleta monocromática `#000000`/`#e6e6e6`/`#ffffff`, tipografía)
-- [x] Fuentes vía `next/font`: Josefin Sans (Google Fonts, exacta) + **Bristol real** (`next/font/local`, archivo provisto por el equipo — ya no es un sustituto)
+- [x] Fuentes vía `next/font`: Josefin Sans (`next/font/local`, variable font descargada del repo oficial de Google Fonts, SIL OFL) + **Bristol real** (`next/font/local`, archivo provisto por el equipo — ya no es un sustituto)
 - [x] Componentes base: `Button`, `Input`, `Logo`, `ScribbleAccent` (motivo de garabatos del brandboard), `MultiSelect` restilizado
 - [x] Layout de auth compartido (`(auth)/layout.tsx`) + header de marca en `(main)/layout.tsx`
 - [x] Landing, login, registro, onboarding de perfil y feed placeholder restilizados con el nuevo sistema

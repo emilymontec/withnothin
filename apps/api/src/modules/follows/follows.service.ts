@@ -59,4 +59,9 @@ export class FollowsService {
   getFolloweeIds(userId: string): Promise<string[]> {
     return this.followsRepository.findFolloweeIds(userId);
   }
+
+  /** Insumo directo de RecommendationsService — batch, ver findFolloweeIdsForMany. */
+  getFolloweeIdsForMany(userIds: string[]): Promise<Map<string, string[]>> {
+    return this.followsRepository.findFolloweeIdsForMany(userIds);
+  }
 }

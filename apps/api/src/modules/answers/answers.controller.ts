@@ -2,7 +2,7 @@ import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AnswersService } from './answers.service';
 import { CreateAnswerDto } from './dto/create-answer.dto';
-import { CurrentUser, AuthenticatedUser } from '../../common/decorators/current-user.decorator';
+import { CurrentUser, AuthenticatedUser, OptionalCurrentUser } from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
 
 @ApiTags('answers')
@@ -22,8 +22,8 @@ export class AnswersController {
 
   @Public()
   @Get()
-  findByPost(@Param('postId') postId: string) {
-    return this.answersService.findByPost(postId);
+  findByPost(@Param('postId') postId: string, @OptionalCurrentUser() user: AuthenticatedUser | undefined) {
+    return this.answersService.findByPost(postId, user?.id);
   }
 
   @Patch(':answerId/accept')

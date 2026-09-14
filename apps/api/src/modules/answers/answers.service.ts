@@ -24,12 +24,12 @@ export class AnswersService {
     }
 
     const answer = await this.answersRepository.create({ postId, authorId: userId, content: dto.content });
-    return this.toResponseDto(answer);
+    return this.toResponseDto(answer, userId);
   }
 
-  async findByPost(postId: string): Promise<AnswerResponseDto[]> {
+  async findByPost(postId: string, currentUserId?: string): Promise<AnswerResponseDto[]> {
     const answers = await this.answersRepository.findByPost(postId);
-    return answers.map((a) => this.toResponseDto(a));
+    return answers.map((a) => this.toResponseDto(a, currentUserId));
   }
 
   async accept(userId: string, postId: string, answerId: string): Promise<AnswerResponseDto> {
@@ -53,17 +53,21 @@ export class AnswersService {
       throw new NotFoundException('Respuesta no encontrada');
     }
 
-    return this.toResponseDto(accepted);
+    return this.toResponseDto(accepted, userId);
   }
 
-  private toResponseDto(answer: AnswerWithRelations): AnswerResponseDto {
+  private toResponseDto(answer: AnswerWithRelations, currentUserId?: string): AnswerResponseDto {
     const votesScore = answer.votes.reduce((sum, v) => sum + v.value, 0);
+    const currentUserVote = currentUserId
+      ? answer.votes.find((v) => v.userId === currentUserId)?.value ?? 0
+      : 0;
 
     return new AnswerResponseDto({
       id: answer.id,
       content: answer.content,
       isAccepted: answer.isAccepted,
       votesScore,
+      currentUserVote,
       author: {
         id: answer.author.id,
         username: answer.author.profile?.username ?? '',

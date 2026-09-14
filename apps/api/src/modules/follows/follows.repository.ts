@@ -33,6 +33,32 @@ export class FollowsRepository {
     return rows.map((r) => r.followeeId);
   }
 
+  /**
+   * Igual que findFolloweeIds pero para varios usuarios a la vez —
+   * una sola query en vez de N. Usado por RecommendationsService para
+   * expandir "gente que sigue la gente que seguís" (2do grado) sin
+   * disparar una query secuencial por cada followee.
+   */
+  async findFolloweeIdsForMany(userIds: string[]): Promise<Map<string, string[]>> {
+    if (userIds.length === 0) return new Map();
+
+    const rows = await this.prisma.follow.findMany({
+      where: { followerId: { in: userIds } },
+      select: { followerId: true, followeeId: true },
+    });
+
+    const result = new Map<string, string[]>();
+    for (const row of rows) {
+      const list = result.get(row.followerId);
+      if (list) {
+        list.push(row.followeeId);
+      } else {
+        result.set(row.followerId, [row.followeeId]);
+      }
+    }
+    return result;
+  }
+
   async findFollowerIds(userId: string): Promise<string[]> {
     const rows = await this.prisma.follow.findMany({
       where: { followeeId: userId },

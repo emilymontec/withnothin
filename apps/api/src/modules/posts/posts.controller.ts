@@ -5,7 +5,11 @@ import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { FindPostsQueryDto } from './dto/find-posts-query.dto';
-import { CurrentUser, AuthenticatedUser } from '../../common/decorators/current-user.decorator';
+import {
+  CurrentUser,
+  OptionalCurrentUser,
+  AuthenticatedUser,
+} from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
 
 @ApiTags('posts')
@@ -24,14 +28,17 @@ export class PostsController {
   // explorar contenido de WithNothin sin cuenta.
   @Public()
   @Get()
-  findMany(@Query() query: FindPostsQueryDto) {
-    return this.postsService.findMany(query);
+  findMany(
+    @Query() query: FindPostsQueryDto,
+    @OptionalCurrentUser() user: AuthenticatedUser | undefined,
+  ) {
+    return this.postsService.findMany(query, user?.id);
   }
 
   @Public()
   @Get(':id')
-  findById(@Param('id') id: string) {
-    return this.postsService.findById(id);
+  findById(@Param('id') id: string, @OptionalCurrentUser() user: AuthenticatedUser | undefined) {
+    return this.postsService.findById(id, user?.id);
   }
 
   @Patch(':id')

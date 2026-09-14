@@ -56,6 +56,8 @@ export interface Post {
   media: PostMediaRef[];
   likesCount: number;
   commentsCount: number;
+  isLikedByCurrentUser: boolean;
+  isSavedByCurrentUser: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -105,6 +107,7 @@ export interface Answer {
   content: string;
   isAccepted: boolean;
   votesScore: number;
+  currentUserVote: number;
   author: AnswerAuthor;
   createdAt: string;
 }

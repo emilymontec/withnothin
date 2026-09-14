@@ -33,7 +33,12 @@ export class ProfilesService {
       });
     }
 
-    return new ProfileResponseDto(profile);
+    return new ProfileResponseDto({
+      ...profile,
+      followersCount: 0,
+      followingCount: 0,
+      isFollowedByCurrentUser: false,
+    });
   }
 
   async updateForUser(userId: string, dto: UpdateProfileDto): Promise<ProfileResponseDto> {
@@ -43,20 +48,24 @@ export class ProfilesService {
     }
 
     const updated = await this.profilesRepository.update(userId, dto);
-    return new ProfileResponseDto(updated);
+    const stats = await this.profilesRepository.getFollowStats(userId, userId);
+    return new ProfileResponseDto({ ...updated, ...stats });
   }
 
-  async findByUsername(username: string): Promise<ProfileResponseDto> {
+  async findByUsername(username: string, currentUserId?: string): Promise<ProfileResponseDto> {
     const profile = await this.profilesRepository.findByUsername(username);
     if (!profile) {
       throw new NotFoundException('Perfil no encontrado');
     }
-    return new ProfileResponseDto(profile);
+    const stats = await this.profilesRepository.getFollowStats(profile.userId, currentUserId);
+    return new ProfileResponseDto({ ...profile, ...stats });
   }
 
   async findByUserId(userId: string): Promise<ProfileResponseDto | null> {
     const profile = await this.profilesRepository.findByUserId(userId);
-    return profile ? new ProfileResponseDto(profile) : null;
+    if (!profile) return null;
+    const stats = await this.profilesRepository.getFollowStats(userId, userId);
+    return new ProfileResponseDto({ ...profile, ...stats });
   }
 
   /**

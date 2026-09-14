@@ -34,18 +34,35 @@ export class AuthGuard implements CanActivate {
       context.getClass(),
     ]);
 
+    const request = context.switchToHttp().getRequest();
+    const authHeader: string | undefined = request.headers?.authorization;
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.slice('Bearer '.length) : undefined;
+
     if (isPublic) {
+      // Auth opcional en rutas públicas: si llega un token válido se
+      // resuelve igualmente el usuario (necesario para cosas como
+      // "isLikedByCurrentUser" en endpoints públicos de posts). Si no
+      // llega token, o es inválido/expirado, la ruta sigue siendo
+      // accesible de forma anónima en vez de bloquear el acceso.
+      if (token) {
+        try {
+          const payload = this.jwtStrategy.verify(token);
+          const user = await this.usersService.getOrProvisionFromAuth({
+            id: payload.sub,
+            email: payload.email,
+          });
+          request.user = { id: user.id, email: user.email, role: user.role };
+        } catch {
+          request.user = undefined;
+        }
+      }
       return true;
     }
 
-    const request = context.switchToHttp().getRequest();
-    const authHeader: string | undefined = request.headers?.authorization;
-
-    if (!authHeader?.startsWith('Bearer ')) {
+    if (!token) {
       throw new UnauthorizedException('Token no provisto');
     }
 
-    const token = authHeader.slice('Bearer '.length);
     const payload = this.jwtStrategy.verify(token);
 
     const user = await this.usersService.getOrProvisionFromAuth({

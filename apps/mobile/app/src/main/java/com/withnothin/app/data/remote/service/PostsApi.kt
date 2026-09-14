@@ -19,6 +19,7 @@ interface PostsApi {
         @Query("cursor") cursor: String? = null,
         @Query("type") type: String? = null,
         @Query("technology") technology: String? = null,
+        @Query("authorId") authorId: String? = null,
     ): List<PostDto>
 
     @GET("posts/{id}")

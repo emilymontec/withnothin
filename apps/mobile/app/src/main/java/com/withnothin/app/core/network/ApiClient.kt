@@ -14,7 +14,10 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 object ApiClient {
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
-        level = HttpLoggingInterceptor.Level.BASIC
+        // BASIC no expone headers/body (el token no se loguea), pero aun
+        // así no tiene sentido loguear tráfico de red en un build de
+        // producción — solo en debug.
+        level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BASIC else HttpLoggingInterceptor.Level.NONE
     }
 
     private fun okHttpClient(authInterceptor: AuthInterceptor) = OkHttpClient.Builder()

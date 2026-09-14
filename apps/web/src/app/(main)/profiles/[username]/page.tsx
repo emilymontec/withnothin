@@ -4,17 +4,17 @@ import { useParams } from 'next/navigation';
 import { useProfileByUsername } from '@/features/profiles/hooks/use-profile';
 import { FollowButton } from '@/features/follows/components/follow-button';
 import { ModerationActions } from '@/features/moderation/components/moderation-actions';
-import { useFollowers, useFollowing } from '@/features/follows/hooks/use-follows';
 import { usePosts } from '@/features/posts/hooks/use-posts';
 import { PostCard } from '@/features/posts/components/post-card';
+import { useDocumentTitle } from '@/lib/hooks/use-document-title';
 import styles from './profile-detail.module.css';
 
 export default function PublicProfilePage() {
   const params = useParams<{ username: string }>();
   const { data: profile, isLoading, isError } = useProfileByUsername(params.username);
-  const { data: followers = [] } = useFollowers(profile?.userId ?? '');
-  const { data: following = [] } = useFollowing(profile?.userId ?? '');
   const { data: posts = [] } = usePosts({ authorId: profile?.userId });
+
+  useDocumentTitle(profile ? `${profile.displayName} (@${profile.username})` : undefined);
 
   if (isLoading) {
     return <p>Cargando perfil...</p>;
@@ -33,10 +33,14 @@ export default function PublicProfilePage() {
           {profile.headline && <p>{profile.headline}</p>}
           {profile.bio && <p>{profile.bio}</p>}
           <p className={styles.stats}>
-            {followers.length} seguidores · {following.length} seguidos
+            {profile.followersCount} seguidores · {profile.followingCount} seguidos
           </p>
         </div>
-        <FollowButton profileUserId={profile.userId} />
+        <FollowButton
+          profileUserId={profile.userId}
+          username={profile.username}
+          isFollowedByCurrentUser={profile.isFollowedByCurrentUser}
+        />
       </div>
       <div style={{ marginTop: '0.5rem' }}>
         <ModerationActions profileUserId={profile.userId} />

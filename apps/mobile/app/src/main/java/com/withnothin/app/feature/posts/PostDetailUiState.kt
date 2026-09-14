@@ -10,8 +10,8 @@ data class PostDetailUiState(
     val answers: List<AnswerDto> = emptyList(),
     val newAnswerText: String = "",
     val isSubmittingAnswer: Boolean = false,
-    val isLiked: Boolean = false, // estado local — la API no expone isLikedByCurrentUser todavía (ver roadmap)
-    val isSaved: Boolean = false, // ídem para guardados
+    val isLiked: Boolean = false, // se inicializa desde post.isLikedByCurrentUser en load()
+    val isSaved: Boolean = false, // ídem, post.isSavedByCurrentUser
     val newCommentText: String = "",
     val isLoading: Boolean = true,
     val isSubmittingComment: Boolean = false,

@@ -67,7 +67,10 @@ dependencies {
     implementation("io.ktor:ktor-client-android:2.3.12")
 
     // Persistencia mínima del token de sesión (no es "cache offline de datos" -> no es Room)
-    implementation("androidx.datastore:datastore-preferences:1.1.1")
+    // EncryptedSharedPreferences — el access token es un JWT que autentica
+    // toda la sesión del usuario; se cifra en reposo con la solución
+    // estándar de Android en vez de guardarse en texto plano.
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
 
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")

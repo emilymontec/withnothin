@@ -42,6 +42,14 @@ export class FeedService {
       limit,
     });
 
-    return posts.map((p) => this.postsService.toResponseDto(p));
+    const postIds = posts.map((p) => p.id);
+    const [likedPostIds, savedPostIds] = await Promise.all([
+      this.postsRepository.findLikedPostIds(userId, postIds),
+      this.postsRepository.findSavedPostIds(userId, postIds),
+    ]);
+
+    return posts.map((p) =>
+      this.postsService.toResponseDto(p, likedPostIds.has(p.id), savedPostIds.has(p.id)),
+    );
   }
 }

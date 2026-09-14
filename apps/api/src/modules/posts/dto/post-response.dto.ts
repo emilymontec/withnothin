@@ -87,6 +87,12 @@ export class PostResponseDto {
   commentsCount: number;
 
   @Expose()
+  isLikedByCurrentUser: boolean;
+
+  @Expose()
+  isSavedByCurrentUser: boolean;
+
+  @Expose()
   createdAt: Date;
 
   @Expose()

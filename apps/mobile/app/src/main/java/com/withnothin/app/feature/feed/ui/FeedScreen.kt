@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.withnothin.app.feature.auth.AuthViewModel
 import com.withnothin.app.feature.feed.FeedViewModel
 import com.withnothin.app.feature.posts.ui.PostListItem
 
@@ -35,6 +36,7 @@ fun FeedScreen(
     onCommunitiesClick: () -> Unit,
     onAdminClick: () -> Unit,
     viewModel: FeedViewModel = hiltViewModel(),
+    authViewModel: AuthViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
 
@@ -49,6 +51,9 @@ fun FeedScreen(
             if (state.isCurrentUserAdmin) {
                 Button(onClick = onAdminClick) { Text("Admin") }
             }
+            // El guard global de AppNavHost se encarga de volver a Login
+            // apenas la sesión se cierra — acá solo se dispara la acción.
+            Button(onClick = authViewModel::signOut) { Text("Cerrar sesión") }
         }
         Button(onClick = onNewPostClick, modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
             Text("Nuevo post")

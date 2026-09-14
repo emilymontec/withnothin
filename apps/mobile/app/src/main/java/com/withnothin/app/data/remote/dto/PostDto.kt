@@ -33,6 +33,8 @@ data class PostDto(
     val media: List<PostMediaRefDto>,
     @Json(name = "likesCount") val likesCount: Int,
     @Json(name = "commentsCount") val commentsCount: Int,
+    @Json(name = "isLikedByCurrentUser") val isLikedByCurrentUser: Boolean = false,
+    @Json(name = "isSavedByCurrentUser") val isSavedByCurrentUser: Boolean = false,
     @Json(name = "createdAt") val createdAt: String,
 )
 
