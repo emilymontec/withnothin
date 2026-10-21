@@ -8,7 +8,9 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.setGlobalPrefix('api/v1');
+  // Rutas sin prefijo (/users, /posts, ...) en vez de /api/v1/users — ver
+  // decisión en docs/architecture. El versionado, si llega a ser necesario,
+  // se resuelve por header (Accept) o subdominio, no por path.
 
   // Headers de seguridad estándar (HSTS, X-Content-Type-Options,
   // X-Frame-Options, etc.) — no se reinventan, se delega en helmet.
@@ -39,13 +41,13 @@ async function bootstrap() {
       .addBearerAuth()
       .build();
     const document = SwaggerModule.createDocument(app, swaggerConfig);
-    SwaggerModule.setup('api/docs', app, document);
+    SwaggerModule.setup('docs', app, document);
   }
 
   const port = process.env.PORT ?? 4000;
   await app.listen(port);
   // eslint-disable-next-line no-console
-  console.log(`WithNothin API escuchando en http://localhost:${port}/api/v1`);
+  console.log(`WithNothin API escuchando en http://localhost:${port}`);
 }
 
 bootstrap();

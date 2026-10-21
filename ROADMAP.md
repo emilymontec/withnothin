@@ -83,7 +83,7 @@ Leyenda: `[x]` completado · `[~]` en progreso · `[ ]` no iniciado
 - [ ] **Pendiente (requiere tu entorno):** ejecutar `pnpm install` + `prisma migrate dev` y probar el flujo end-to-end real (registro → login → `/users/me` → crear perfil) en Web
 - [ ] **Pendiente (requiere tu entorno):** compilar `apps/mobile` en Android Studio con credenciales reales de Supabase y probar el mismo flujo
 - [ ] **Pendiente:** generar el Gradle Wrapper (`gradlew`) — necesario para que el job de CI de Android funcione
-- [ ] **Docs:** actualizar `docs/api/` con endpoints de auth/users/profiles (Swagger ya los genera automáticamente en `/api/docs`)
+- [ ] **Docs:** actualizar `docs/api/` con endpoints de auth/users/profiles (Swagger ya los genera automáticamente en `/docs`)
 
 ---
 

@@ -23,7 +23,7 @@ android {
 
         // Se sobreescriben por variante (debug/release) o vía gradle.properties locales.
         // No se versionan claves reales — ver docs/development/ONBOARDING.md.
-        buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:4000/api/v1/\"")
+        buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:4000/\"")
         buildConfigField("String", "SUPABASE_URL", "\"https://your-project.supabase.co\"")
         buildConfigField("String", "SUPABASE_ANON_KEY", "\"replace-me\"")
     }

@@ -94,7 +94,7 @@ En producción normalmente **no** se usa el Postgres del compose (se apunta `DAT
 1. Aplicar migraciones (`prisma migrate deploy`) contra la base de producción.
 2. Desplegar la API (contiene la lógica de negocio; la web depende de que ya esté arriba).
 3. Desplegar la web, apuntando `NEXT_PUBLIC_API_URL` a la API ya desplegada.
-4. Verificar `GET /api/v1/health` (o el endpoint de salud que corresponda) antes de enrutar tráfico real.
+4. Verificar `GET /health` (o el endpoint de salud que corresponda) antes de enrutar tráfico real.
 
 ### 3.5 Plataformas sugeridas (sin atarse a una)
 - **API (contenedor Docker)**: Railway, Render, Fly.io, o cualquier ECS/Cloud Run — no requiere nada específico de un proveedor.
