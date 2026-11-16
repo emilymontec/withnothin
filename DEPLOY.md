@@ -13,8 +13,8 @@ Dos opciones, sin cambios de código entre una y otra (`DATABASE_URL` es lo úni
 - **Postgres gestionado aparte** (RDS, Cloud SQL, Neon, Railway, etc.): cualquiera sirve, Prisma no depende de Supabase para la base en sí.
 
 ### 1.3 Migraciones
-```bash
-cd apps/api
+```powershell
+Set-Location apps/api
 npx prisma generate          # genera el client — requiere descargar el query engine
 npx prisma migrate deploy    # aplica migraciones pendientes, uso en CI/CD
 npx prisma migrate dev       # solo en desarrollo, genera nuevas migraciones
@@ -85,7 +85,7 @@ Todo lo que empieza con `NEXT_PUBLIC_` queda embebido en el bundle del cliente �
 
 ### 3.3 Build y contenedores
 Dockerfiles multi-stage ya listos en `apps/api/Dockerfile` y `apps/web/Dockerfile` (build con pnpm workspaces, runtime liviano sobre `node:20-alpine`). Para levantar todo junto (Postgres local + API + Web):
-```bash
+```powershell
 docker compose -f infrastructure/docker/docker-compose.yml up -d --build
 ```
 En producción normalmente **no** se usa el Postgres del compose (se apunta `DATABASE_URL` a Supabase o al Postgres gestionado) — ese servicio del compose es para desarrollo/staging local.

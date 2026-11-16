@@ -142,20 +142,25 @@ apps/mobile ─┘            │
 The project is fully implemented in code; the steps below take it from a fresh clone to a running local environment.
 </p>
 
-```bash
+```powershell
 # 1. Install dependencies (pnpm workspaces)
 pnpm install
 
 # 2. Configure environment variables for each app
-cp apps/web/.env.example apps/web/.env
-cp apps/api/.env.example apps/api/.env
+Copy-Item apps/web/.env.example apps/web/.env
+Copy-Item apps/api/.env.example apps/api/.env
 
 # 3. Point Prisma at your Postgres/Supabase instance and run the first migration
-pnpm --filter api prisma migrate dev
+pnpm --filter @withnothin/api prisma migrate dev
 
-# 4. Start web + api together (or use the Docker Compose setup for local dev)
+# 4. Start web + api together in PowerShell (or use the Docker Compose setup for local dev)
 pnpm dev
 ```
+
+<p align="justify">
+Los scripts de pnpm se ejecutan con PowerShell en Windows (configurado en <code>.npmrc</code>).
+Para levantar cada app por separado usá <code>pnpm dev:api</code> o <code>pnpm dev:web</code>.
+</p>
 
 <p align="justify">
 The Android app lives in <code>apps/mobile</code> and opens directly in Android Studio; it expects your Supabase URL and anon key via <code>BuildConfig</code>. A Gradle Wrapper still needs to be generated locally the first time you build it, since it is not checked into the repository.

@@ -3,8 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "prebuild": "pnpm --filter @withnothin/shared-types build",
     "build": "nest build",
     "start": "node dist/main",
+    "dev": "nest start --watch",
     "start:dev": "nest start --watch",
     "lint": "eslint \"src/**/*.ts\"",
     "test": "jest --config test/jest.config.js",

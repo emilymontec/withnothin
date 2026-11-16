@@ -138,7 +138,11 @@ importers:
 
   packages/shared-config: {}
 
-  packages/shared-types: {}
+  packages/shared-types:
+    devDependencies:
+      typescript:
+        specifier: ^5.7.2
+        version: 5.7.2
 
 packages:
 

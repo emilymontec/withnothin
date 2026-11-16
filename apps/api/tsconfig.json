@@ -6,7 +6,8 @@
     "baseUrl": "./",
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "target": "ES2022"
+    "target": "ES2022",
+    "strictPropertyInitialization": false
   },
   "include": ["src/**/*.ts"]
 }

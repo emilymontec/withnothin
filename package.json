@@ -4,11 +4,17 @@
   "version": "0.1.0",
   "description": "WithNothin — Everyone starts with nothin.",
   "scripts": {
+    "predev": "pnpm --filter @withnothin/shared-types build",
+    "dev": "pnpm -r --parallel --stream --filter @withnothin/shared-types --filter @withnothin/api --filter @withnothin/web run dev",
+    "predev:api": "pnpm --filter @withnothin/shared-types build",
     "dev:api": "pnpm --filter @withnothin/api start:dev",
+    "predev:web": "pnpm --filter @withnothin/shared-types build",
     "dev:web": "pnpm --filter @withnothin/web dev",
+    "build": "pnpm -r run build",
     "build:api": "pnpm --filter @withnothin/api build",
     "build:web": "pnpm --filter @withnothin/web build",
-    "lint": "pnpm --filter @withnothin/api lint && pnpm --filter @withnothin/web lint",
+    "lint": "pnpm -r --filter @withnothin/api --filter @withnothin/web run lint",
+    "pretest:api": "pnpm --filter @withnothin/shared-types build",
     "test:api": "pnpm --filter @withnothin/api test",
     "docker:up": "docker compose -f infrastructure/docker/docker-compose.yml up --build",
     "docker:down": "docker compose -f infrastructure/docker/docker-compose.yml down"
